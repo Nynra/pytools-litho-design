@@ -1,0 +1,3 @@
+[submodule "qnngdshelper"]
+	path = qnngdshelper
+	url = https://github.com/Nynra/qnngdshelper
