@@ -56,10 +56,11 @@ def hyper_taper(length=10, wide_section=50, narrow_section=5, layer=1) -> gf.Com
 
 @gf.cell
 def angled_taper(
-    wire_width: Union[int, float] = 0.2,
+    wire_width: Union[int, float] = 0.6,
     constr_width: Union[int, float] = 0.1,
     angle: Union[int, float] = 60,
-    layer: int = 1,
+    radius: Union[int, float] = 3,
+    p=0.4,
 ) -> gf.Component:
     """Create an angled taper with euler curves
 
@@ -74,87 +75,36 @@ def angled_taper(
         Width of narrow end of taper
     angle: int or float
         Angle between taper ends in degrees
+    radius: int or float
+        Radius of curvature for the taper
+    p: int or float
+        The percentage of the curve that is a straight line
 
     Returns
     -------
     Components
         A gdsfactory Component containing a single taper
     """
+    # Define the sections of the crossing (beginning and end)
+    constr_sect = gf.get_cross_section("strip", width=constr_width)
+    wire_sect = gf.get_cross_section("strip", width=wire_width)
 
-    D = gf.Component()
+    # Create the transition obj and the routing function (euler in this case)
+    trans = gf.path.transition(constr_sect, wire_sect)
+    euler_path = gf.path.euler(angle=angle, radius=radius, p=p)
 
-    # heuristic for length between narrow end and bend
-    l_constr = constr_width * 2 + wire_width * 2
-    # heuristic for length between wide end and bend
-    l_wire = constr_width * 2 + wire_width * 2
-    sin = np.sin(angle * np.pi / 180)
-    cos = np.cos(angle * np.pi / 180)
-    # path along the center of the taper
-    p_center = np.array(
-        [[0, 0], [l_constr, 0], [l_constr + l_wire * cos, l_wire * sin]]
-    )
-    # upper (shorter) path along the inside edge of the taper
-    p_upper = np.array(
-        [
-            [0, constr_width / 2],
-            [0, constr_width / 2],
-            p_center[2] + [-wire_width / 2 * sin, wire_width / 2 * cos],
-        ]
-    )
-    p_upper[1, 0] = (constr_width / 2 - p_upper[2, 1]) * cos / sin + p_upper[2, 0]
-    # lower (longer) path along the outside edge of the taper
-    p_lower = np.array(
-        [
-            [0, -constr_width / 2],
-            [0, -constr_width / 2],
-            p_center[2] + [wire_width / 2 * sin, -wire_width / 2 * cos],
-        ]
-    )
-    p_lower[1, 0] = (-constr_width / 2 - p_lower[2, 1]) * cos / sin + p_lower[2, 0]
-
-    # interpolate euler curve between points using numpy
-    # P_upper = pp.smooth(
-    #     points=p_upper, radius=wire_width, corner_fun=pp.euler, use_eff=False
-    # )
-    # P_lower = pp.smooth(
-    #     points=p_lower, radius=wire_width, corner_fun=pp.euler, use_eff=False
-    # )
-    P_upper = gf.path.smooth(
-        points=p_upper, radius=wire_width, bend=gf.path.euler, use_eff=False
-    )
-    P_lower = gf.path.smooth(
-        points=p_lower, radius=wire_width, bend=gf.path.euler, use_eff=False
-    )
-
-    # create a polygon
-    points = np.concatenate((P_upper.points, P_lower.points[::-1]))
-    D.add_polygon(points, layer=layer)
-
-    # port 1: narrow/constr_width end, port 2: wide/wire_width end
-    D.add_port(
-        name="1",
-        center=(P_upper.points[0] + P_lower.points[0]) / 2,
-        width=constr_width,
-        orientation=180,
-        layer=layer,
-    )
-    D.add_port(
-        name="2",
-        center=(P_upper.points[-1] + P_lower.points[-1]) / 2,
-        width=wire_width,
-        orientation=angle,
-        layer=layer,
-    )
-    return D
+    # Extrude the transition along the routing function to create the component
+    taper = gf.path.extrude_transition(euler_path, trans)
+    return taper
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # Create and show the hyperbolic taper
-    c = hyper_taper()
-    c.plot()
-    plt.show()
+    # c = hyper_taper()
+    # c.plot()
+    # plt.show()
 
     # Create and show the angled taper
     c = angled_taper()
