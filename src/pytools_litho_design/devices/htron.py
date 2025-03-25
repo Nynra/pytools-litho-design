@@ -12,7 +12,7 @@ import gdsfactory as gf
 # from qnngds.utilities import PadPlacement, QnnDevice
 # from qnngds.geometries import angled_taper
 from typing import Tuple, List, Union, Optional
-from ..components.tapers import angled_taper
+from ..geometries import angled_taper
 
 
 @gf.cell
