@@ -1,17 +1,22 @@
 [project]
 name = "pytools_litho_design"
-version = "0.0.3"
+version = "0.0.4"
 authors = [{ name = "Nynra", email = "nynradev@pm.me" }]
 description = "Some usefull functions for mask design."
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
-dependencies = ["matplotlib", "numpy", "gdsfactory"]
+dependencies = ["matplotlib", "numpy", "gdsfactory", "gplugins"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
     "License :: MIT License",
 ]
 license = { text = "MIT License" }
+
+[project.optional-dependencies]
+femwell = ["femwell", "skfem"]
+tidy3d = ["tidy3d"]
+sax = ["sax", "jax"]
 
 [project.urls]
 Homepage = "https://github.com/Nynra/pytools-lihto-design"
