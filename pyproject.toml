@@ -9,9 +9,9 @@ dependencies = ["matplotlib", "numpy", "gdsfactory", "gplugins"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    "License :: MIT License",
 ]
-license = { text = "MIT License" }
+license = "MIT"
+license-files = ["LICENSE"]
 
 [project.optional-dependencies]
 femwell = ["femwell", "skfem"]
@@ -23,5 +23,5 @@ Homepage = "https://github.com/Nynra/pytools-lihto-design"
 Issues = "https://github.com/Nynra/pytools-litho-design/issues"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
