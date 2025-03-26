@@ -11,6 +11,10 @@ images_ref
 dev
 html
 unused
+*.gds
+*.stl 
+*.csv
+*.oas
 
 # C extensions
 *.so
