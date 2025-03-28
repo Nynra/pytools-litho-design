@@ -43,3 +43,10 @@ pip install pytools_litho_design @ https://github.com/Nynra/pytools-litho-design
 # Or if you need a specific version (x.x.x is the version number)
 pip install pytools_litho_design @ https://github.com/Nynra/pytools-litho-design.git@x.x.x
 ```
+
+## Resources
+
+- GdsFactory Documentation
+- gdsfacotry-UL repository
+- qnngds repository
+- gnnhelper repository
