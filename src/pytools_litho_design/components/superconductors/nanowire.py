@@ -53,6 +53,7 @@ def spot_wire(
     return final_NANOWIRE
 
 
+@gf.cell
 def variable_length_wire(
     channel_w: float = 0.1,
     source_w: float = 0.3,

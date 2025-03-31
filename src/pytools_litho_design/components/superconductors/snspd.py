@@ -1,5 +1,36 @@
 import gdsfactory as gf
 import numpy as np
+from gdsfactory.typings import Layer
+from .nanowire import variable_length_wire
+from ..waveguides import straight as straight_waveguide
+
+
+@gf.cell
+def straight_snspd(
+    channel_w: float = 0.5,
+    source_w: float = 1,
+    channel_l: float = 10.0,
+    nanowire_layer: Layer = (1, 0),
+    guide_w: float = 0.5,
+    guide_layer: Layer = (8, 0),
+) -> gf.Component:
+    C = gf.Component()
+    nanowire = C << variable_length_wire(
+        channel_w=channel_w,
+        source_w=source_w,
+        channel_l=channel_l,
+        layer=nanowire_layer,
+    )
+    waveguide = C << straight_waveguide(
+        cross_section=gf.cross_section.strip(layer=guide_layer, width=guide_w),
+    )
+    waveguide.rotate(90)
+    waveguide.center = (
+        nanowire.xmin + nanowire.xsize / 2,
+        nanowire.ymin + nanowire.ysize / 2,
+    )
+
+    return C
 
 
 # @gf.cell
