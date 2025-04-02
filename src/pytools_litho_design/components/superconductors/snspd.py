@@ -1,8 +1,8 @@
 import gdsfactory as gf
 import numpy as np
 from gdsfactory.typings import Layer
-from .nanowire import variable_length_wire
-from ..waveguides import straight as straight_waveguide
+from .constrictions import variable_length_constriction, spot_constriction
+from gdsfactory.components.waveguides import straight as straight_waveguide
 
 
 @gf.cell
@@ -10,25 +10,93 @@ def straight_snspd(
     channel_w: float = 0.5,
     source_w: float = 1,
     channel_l: float = 10.0,
+    anticrowding_factor: float = 1.2,
     nanowire_layer: Layer = (1, 0),
     guide_w: float = 0.5,
     guide_layer: Layer = (8, 0),
+    cladding_layer: Layer = None,
 ) -> gf.Component:
+    # Add the nanowire
     C = gf.Component()
-    nanowire = C << variable_length_wire(
+    nanowire = C << variable_length_constriction(
         channel_w=channel_w,
         source_w=source_w,
         channel_l=channel_l,
         layer=nanowire_layer,
+        anticrowding_factor=anticrowding_factor,
     )
-    waveguide = C << straight_waveguide(
-        cross_section=gf.cross_section.strip(layer=guide_layer, width=guide_w),
-    )
+
+    # Add the waveguide
+    if cladding_layer:
+        waveguide = C << straight_waveguide(
+            cross_section=gf.cross_section.strip(
+                layer=guide_layer, width=guide_w, cladding_layer=cladding_layer
+            )
+        )
+    else:
+        waveguide = C << straight_waveguide(
+            cross_section=gf.cross_section.strip(layer=guide_layer, width=guide_w)
+        )
+
+    # Position the waveguide in the middle of the nanowire
     waveguide.rotate(90)
     waveguide.center = (
         nanowire.xmin + nanowire.xsize / 2,
         nanowire.ymin + nanowire.ysize / 2,
     )
+
+    # Add the ports
+    for port in nanowire.ports:
+        C.add_port(name=port.name, port=port, layer=nanowire_layer)
+    for port in waveguide.ports:
+        C.add_port(name=port.name, port=port, layer=guide_layer)
+
+    return C
+
+
+@gf.cell
+def spot_snspd(
+    channel_w: float = 0.5,
+    source_w: float = 1,
+    anticrowding_factor: float = 1.2,
+    nanowire_layer: Layer = (1, 0),
+    guide_w: float = 0.5,
+    guide_layer: Layer = (8, 0),
+    cladding_layer: Layer = None,
+) -> gf.Component:
+    # Add the nanowire
+    C = gf.Component()
+    nanowire = C << spot_constriction(
+        channel_w=channel_w,
+        source_w=source_w,
+        layer=nanowire_layer,
+        anticrowding_factor=anticrowding_factor,
+    )
+
+    # Add the waveguide
+    if cladding_layer:
+        waveguide = C << straight_waveguide(
+            cross_section=gf.cross_section.strip(
+                layer=guide_layer, width=guide_w, cladding_layer=cladding_layer
+            )
+        )
+    else:
+        waveguide = C << straight_waveguide(
+            cross_section=gf.cross_section.strip(layer=guide_layer, width=guide_w)
+        )
+
+    # Position the waveguide in the middle of the nanowire
+    waveguide.rotate(90)
+    waveguide.center = (
+        nanowire.xmin + nanowire.xsize / 2,
+        nanowire.ymin + nanowire.ysize / 2,
+    )
+
+    # Add the ports
+    for port in nanowire.ports:
+        C.add_port(name=port.name, port=port, layer=nanowire_layer)
+    for port in waveguide.ports:
+        C.add_port(name=port.name, port=port, layer=guide_layer)
 
     return C
 
@@ -167,9 +235,9 @@ def straight_snspd(
 #     return D
 
 
-# if __name__ == "__main__":
-#     import matplotlib.pyplot as plt
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
 
-#     c = wg_to_snspd()
-#     c.plot()
-#     plt.show()
+    c = spot_snspd()
+    c.plot()
+    plt.show()
