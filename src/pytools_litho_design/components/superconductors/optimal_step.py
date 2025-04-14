@@ -5,18 +5,17 @@ import numpy as np
 import gdsfactory as gf
 from gdsfactory.component import Component
 from gdsfactory.typings import LayerSpec
+from typing import Union
 
 
 @gf.cell
 def optimal_step(
-    start_width: float = 10,
     end_width: float = 22,
-    num_pts: int = 50,
+    cross_section: Union[gf.CrossSection, str] = "strip",
+    num_pts: int = 100,
     width_tol: float = 1e-3,
     anticrowding_factor: float = 1.2,
     symmetric: bool = False,
-    layer: LayerSpec = "NEG_NBTIN",
-    port_types: list[str] = ["electrical", "electrical"],
 ) -> Component:
     """Returns an optimally-rounded step geometry.
 
@@ -26,24 +25,15 @@ def optimal_step(
         ports instead of optical ports. The original function is located in
         gdsfactory.components.superconductors.optimal_step
 
-    Args:
-        start_width: Width of the connector on the left end of the step.
-        end_width: Width of the connector on the right end of the step.
-        num_pts: number of points comprising the entire step geometry.
-        width_tol: Point at which to terminate the calculation of the optimal step
-        anticrowding_factor: Factor to reduce current crowding by elongating
-            the structure and reducing the curvature
-        symmetric: If True, adds a mirrored copy of the step across the x-axis to the
-            geometry and adjusts the width of the ports.
-        layer: layer spec to put polygon geometry on.
-        port_types: list of port types to add to the component. Default is
-            ["electrical", "electrical"] for two electrical ports.
 
     based on phidl.geometry
     Optimal structure from https://doi.org/10.1103/PhysRevB.84.174510
     Clem, J., & Berggren, K. (2011). Geometry-dependent critical currents in
     superconducting nanocircuits. Physical Review B, 84(17), 1-27.
     """
+    if isinstance(cross_section, str):
+        cross_section = gf.get_cross_section(cross_section)
+    start_width = cross_section.width
 
     def step_points(eta: float, W: complex, a: complex) -> tuple[float, float]:
         """Returns step points.
@@ -153,45 +143,48 @@ def optimal_step(
             )
         )
 
-    D.add_polygon(list(zip(xpts, ypts)), layer=layer)
+    D.add_polygon(list(zip(xpts, ypts)), layer=cross_section.layer)
     if not symmetric:
         D.add_port(
             name="e1",
-            center=(min(xpts), start_width / 2),
-            width=start_width,
-            orientation=180,
-            layer=layer,
-            port_type=port_types[0],
-        )
-        D.add_port(
-            name="e2",
             center=(max(xpts), end_width / 2),
             width=end_width,
             orientation=0,
-            layer=layer,
-            port_type=port_types[1],
-        )
-    if symmetric:
-        D.add_port(
-            name="e1",
-            center=(min(xpts), 0),
-            width=start_width,
-            orientation=180,
-            layer=layer,
-            port_type=port_types[0],
+            # layer=cross_section.layer,
+            # port_type=cross_section.port_types[1],
+            cross_section=cross_section,
         )
         D.add_port(
             name="e2",
+            center=(min(xpts), cross_section.width / 2),
+            # width=cross_section.width,
+            orientation=180,
+            # layer=cross_section.layer,
+            # port_type=cross_section.ports[0].port_type,
+            cross_section=cross_section,
+        )
+
+    if symmetric:
+        D.add_port(
+            name="e1",
             center=(max(xpts), 0),
             width=end_width,
             orientation=0,
-            layer=layer,
-            port_type=port_types[1],
+            # layer=cross_section.layer,
+            # port_type=cross_section.port_types[1],
+            cross_section=cross_section,
+        )
+        D.add_port(
+            name="e2",
+            center=(min(xpts), 0),
+            orientation=180,
+            # port_type=cross_section.port_types[0],
+            cross_section=cross_section,
         )
 
     return D
 
 
 if __name__ == "__main__":
-    c = optimal_step()
+    c = optimal_step(symmetric=True)
     c.show()
