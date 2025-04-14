@@ -13,11 +13,8 @@ from .optimal_step import optimal_step
 @gf.cell
 def spot_constriction(
     channel_w: float = 0.1,
-    source_w: float = 0.3,
+    cross_section: Union[str, gf.CrossSection] = "nbtin",
     anticrowding_factor: float = 1.2,
-    two_point_probe: bool = False,
-    four_point_probe: bool = False,
-    layer: int = "NEG_NBTIN",
     num_pts: int = 100,
 ) -> gf.Component:
     """Creates a single wire, made of two optimal steps from channel_w to
@@ -27,16 +24,10 @@ def spot_constriction(
     ----------
     channel_w : float, optional
         The width of the channel (at the hot-spot location), by default 0.1
-    source_w : float, optional
-        The width of the nanowire's "source", by default 0.3
+    cross_section : Union[str, gf.CrossSection], optional
+        The cross-section of the wire, by default "nbtin"
     anticrowding_factor : float, optional
         The factor by which to increase the length of the constriction, by default 1.2
-    two_point_probe : bool, optional
-        Whether to create pads for four-point-probe configuration, by default False
-    four_point_probe : bool, optional
-        Whether to create pads for two-point-probe configuration, by default False
-    layer : int, optional
-        The layer where to put the device, by default 1
     num_pts : int, optional
         The number of points comprising the optimal_steps geometries, by default 100
 
@@ -45,17 +36,18 @@ def spot_constriction(
     gf.Component
         A device containing 2 optimal steps joined at their channel_w end.
     """
+    if isinstance(cross_section, str):
+        cross_section = gf.get_cross_section(cross_section)
     NANOWIRE = gf.Component()
     # wire = pg.optimal_step(
     #     channel_w, source_w, symmetric=True, num_pts=num_pts, layer=layer
     # )
     WIRE = optimal_step(
-        start_width=channel_w,
-        end_width=source_w,
+        end_width=channel_w,
         num_pts=num_pts,
         symmetric=True,
-        layer=layer,
         anticrowding_factor=anticrowding_factor,
+        cross_section=cross_section,
     )
     source = NANOWIRE << WIRE
     gnd = NANOWIRE << WIRE
@@ -63,58 +55,6 @@ def spot_constriction(
 
     NANOWIRE.add_port(name="e1", port=source.ports[1])
     NANOWIRE.add_port(name="e2", port=gnd.ports[1])
-
-    if four_point_probe:
-        # Add probes for four-point-probe
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e1",
-            probe_name="e3",
-            rotation=45,
-            probe_width=source_w,
-        )
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e1",
-            probe_name="e3",
-            rotation=-45,
-            probe_width=source_w,
-        )
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e2",
-            probe_name="e4",
-            rotation=45,
-            probe_width=source_w,
-        )
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e2",
-            probe_name="e5",
-            rotation=-45,
-            probe_width=source_w,
-        )
-    elif two_point_probe:
-        # Add probes for two-point-probe
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e1",
-            probe_name="e3",
-            rotation=90,
-            probe_width=source_w,
-        )
-        add_probe(
-            device=NANOWIRE,
-            probe_port="e2",
-            probe_name="e4",
-            rotation=90,
-            probe_width=source_w,
-        )
-
-    # # Make sure the e ports are electrical
-    # for port in NANOWIRE.ports:
-    #     if port.name in ["e1", "e2"]:
-    #         port.port_type = "electrical"
 
     final_NANOWIRE = gf.Component()
     final_NANOWIRE << NANOWIRE
