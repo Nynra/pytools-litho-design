@@ -117,7 +117,7 @@ def grating_coupler_traditional(
     c.add_port(
         name="o1",
         center=(origin[0], origin[1]),
-        orientation=angle * 180 / np.pi,
+        orientation=180,
         cross_section=cross_section,
     )
     return c
@@ -133,4 +133,5 @@ if __name__ == "__main__":
         n_ap_gratings=15,
         taper_length=16.0,
     )
+    grating_coupler.draw_ports()
     grating_coupler.show()
