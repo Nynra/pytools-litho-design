@@ -84,33 +84,20 @@ import gdsfactory as gf
 import gdsfactory.typings as typings
 from gdsfactory.cross_section import CrossSection
 from gdsfactory.cross_section import port_names_electrical, port_types_electrical
+from functools import partial
 
 
 @gf.xsection
 def waveguide(
     width: float = 0.5,
     layer: typings.LayerSpec = "WAVEGUIDE",
-    radius: float = 10.0,
-    radius_min: float = 5,
+    radius: float = 100,
+    radius_min: float = 100,
     **kwargs: typings.Any,
 ) -> CrossSection:
     """Return Waveguide cross section.
 
     Create a waveguide without cladding.
-
-    Parameters
-    ----------
-    width : float
-        Width of the waveguide.
-    layer : str
-        Layer name for the waveguide.
-    radius : float
-        Radius used for bends in the routing of the waveguide.
-    radius_min : float
-        Minimum acceptable bend radius.
-    kwargs : dict
-        Additional parameters for the cross-section that will be passed
-        to the :func:`gf.cross_sections.cross_section` function.
 
     Returns
     -------
@@ -130,8 +117,8 @@ def waveguide(
 def strip(
     width: float = 0.5,
     layer: typings.LayerSpec = "WAVEGUIDE",
-    radius: float = 10.0,
-    radius_min: float = 5,
+    radius: float = 100,
+    radius_min: float = 100,
     **kwargs: typings.Any,
 ) -> CrossSection:
     """Return Waveguide cross section.
@@ -151,8 +138,8 @@ def strip(
 def rib(
     width: float = 0.5,
     layer: typings.LayerSpec = "WAVEGUIDE",
-    radius: float = 10.0,
-    radius_min: float | None = None,
+    radius: float = 100,
+    radius_min: float | None = 100,
     cladding_layers: typings.LayerSpecs = ("CLADDING",),
     cladding_offsets: typings.Floats = (3,),
     cladding_simplify: typings.Floats = (50 * 10e-9,),
@@ -289,7 +276,7 @@ def metal1(
     port_types: typings.IOPorts = port_types_electrical,
     **kwargs: typings.Any,
 ) -> CrossSection:
-    """Return NbTiN Strip cross_section."""
+    """Return NbTiN cross_section."""
     return nbtin(
         width=width,
         layer=layer,
@@ -309,7 +296,7 @@ def metal_routing(
     port_types: typings.IOPorts = port_types_electrical,
     **kwargs: typings.Any,
 ) -> CrossSection:
-    """Return Metal Strip cross_section."""
+    """Return Neg NbTiN cross_section."""
     return cross_section(
         width=width,
         layer=layer,

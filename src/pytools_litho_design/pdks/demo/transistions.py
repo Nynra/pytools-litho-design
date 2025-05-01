@@ -1,10 +1,18 @@
 from .layers import DEMO_LAYERS
 from functools import partial
 import gdsfactory as gf
-from ...components.tapers.tapers import (
+from ...components.tapers.transition_tapers import (
     taper_nbtin_au,
     taper_au_nbtin,
 )
+
+
+# LAYER_CONNECTIVITY = [
+#     ("NPP", "VIAC", "M1"),
+#     ("PPP", "VIAC", "M1"),
+#     ("M1", "VIA1", "M2"),
+#     ("M2", "VIA2", "M3"),
+# ]
 
 
 DEMO_TRANSITIONS = {

@@ -1,1 +1,1 @@
-from . import snspd
+from .snspds import spot_snspd
