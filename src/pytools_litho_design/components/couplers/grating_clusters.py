@@ -1,20 +1,19 @@
 import gdsfactory as gf
-from pytools_litho_design.pdks.loader import get_pdk
 import pytools_litho_design as pld
 import gdsfactory as gf
 
 
 @gf.cell
-def grating_cluster(
-    coupler,
-    row_offset: int = 200,
-    column_offset: int = 500,
-    cross_section: str = "strip",
+def grating_coupler_cluster(
+    coupler: gf.Component | str = "grating_coupler_traditional",
+    row_offset: int = 150,
+    column_offset: int = 600,
+    cross_section: gf.CrossSection | str = "strip",
 ):
     if isinstance(cross_section, str):
         cross_section = gf.get_cross_section(cross_section)
-    if not isinstance(cross_section, gf.CrossSection):
-        raise ValueError("cross_section must be a gdsfactory cross_section or a string")
+    if isinstance(coupler, str):
+        coupler = gf.get_component(coupler)
 
     # Create the chip and create the layout
     CHIP = gf.Component()
@@ -43,7 +42,7 @@ def grating_cluster(
     # Create 4 ports at the top and 4 at the bottom
     OUTPUT_GUIDE = gf.components.waveguides.straight(
         length=10,
-        cross_section="strip",
+        cross_section=cross_section,
     )
     output1 = CHIP << OUTPUT_GUIDE
     output2 = CHIP << OUTPUT_GUIDE
@@ -56,24 +55,25 @@ def grating_cluster(
 
     # 1, 4, 5, 8 at the bottom
     guide_spacing = column_offset / 6
+    output_offset = row_offset
     output5.rotate(-90)
-    output5.center = (grating7.x - 1.5 * guide_spacing, grating7.y - 40)
+    output5.center = (grating7.x - 1.5 * guide_spacing, grating7.y - output_offset)
     output1.rotate(-90)
-    output1.center = (grating7.x - 2.5 * guide_spacing, grating7.y - 40)
+    output1.center = (grating7.x - 2.5 * guide_spacing, grating7.y - output_offset)
     output8.rotate(-90)
-    output8.center = (grating8.x - 1.5 * guide_spacing, grating8.y - 40)
+    output8.center = (grating8.x - 1.5 * guide_spacing, grating8.y - output_offset)
     output4.rotate(-90)
-    output4.center = (grating8.x - 2.5 * guide_spacing, grating8.y - 40)
+    output4.center = (grating8.x - 2.5 * guide_spacing, grating8.y - output_offset)
 
     # 2, 3, 6, 7 at the top
     output6.rotate(90)
-    output6.center = (grating1.x - 3.5 * guide_spacing, grating1.y + 40)
+    output6.center = (grating1.x - 3.5 * guide_spacing, grating1.y + output_offset)
     output2.rotate(90)
-    output2.center = (grating1.x - 4.5 * guide_spacing, grating1.y + 40)
+    output2.center = (grating1.x - 4.5 * guide_spacing, grating1.y + output_offset)
     output3.rotate(90)
-    output3.center = (grating1.x + 1.5 * guide_spacing, grating2.y + 40)
+    output3.center = (grating1.x + 1.5 * guide_spacing, grating2.y + output_offset)
     output7.rotate(90)
-    output7.center = (grating1.x + 2.5 * guide_spacing, grating2.y + 40)
+    output7.center = (grating1.x + 2.5 * guide_spacing, grating2.y + output_offset)
 
     # Route the waveguides
     gf.routing.route_bundle(
@@ -83,22 +83,14 @@ def grating_cluster(
             grating2.ports["o1"],
             grating3.ports["o1"],
             grating4.ports["o1"],
-            # grating5.ports["o1"],
-            # grating6.ports["o1"],
-            # grating7.ports["o1"],
-            # grating8.ports["o1"],
         ],
         [
             output1.ports["o1"],
             output2.ports["o1"],
             output3.ports["o1"],
             output4.ports["o1"],
-            # output5.ports["o1"],
-            # output6.ports["o1"],
-            # output7.ports["o1"],
-            # output8.ports["o1"],
         ],
-        cross_section="strip",
+        cross_section=cross_section,
     )
     gf.routing.route_bundle(
         CHIP,
@@ -114,7 +106,7 @@ def grating_cluster(
             output7.ports["o1"],
             output8.ports["o1"],
         ],
-        cross_section="strip",
+        cross_section=cross_section,
     )
 
     FINAL_CHIP = gf.Component()
@@ -132,11 +124,9 @@ def grating_cluster(
 
 
 if __name__ == "__main__":
-    GRATING_COUPLER = gf.components.couplers.coupler(
-        cross_section="strip",
+    c = grating_coupler_cluster(
+        coupler="grating_coupler_traditional",
+        row_offset=150,
+        column_offset=600,
     )
-    c = grating_cluster(
-        coupler=GRATING_COUPLER,
-    )
-    c.draw_ports()
     c.show()

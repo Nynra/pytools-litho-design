@@ -49,6 +49,7 @@ def grating_coupler_traditional(
     """
     if isinstance(cross_section, str):
         cross_section = gf.get_cross_section(cross_section)
+
     c = gf.Component()
     opening_angle = full_opening_angle / 2
 

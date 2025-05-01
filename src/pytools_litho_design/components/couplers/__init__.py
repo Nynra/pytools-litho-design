@@ -1,3 +1,3 @@
-from . import directional_coupler
-from . import grating_coupler
-from . import grating_cluster
+from .grating_arrays import grating_coupler_array
+from .grating_clusters import grating_coupler_cluster
+from .grating_couplers import grating_coupler_traditional

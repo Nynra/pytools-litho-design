@@ -11,7 +11,7 @@ from typing import Union
 @gf.cell
 def optimal_step(
     end_width: float = 22,
-    cross_section: Union[gf.CrossSection, str] = "strip",
+    cross_section: gf.CrossSection | str = "strip",
     num_pts: int = 100,
     width_tol: float = 1e-3,
     anticrowding_factor: float = 1.2,

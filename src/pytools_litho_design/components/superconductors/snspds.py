@@ -9,35 +9,29 @@ from typing import Union
 @gf.cell
 def straight_snspd(
     channel_w: float = 0.5,
-    source_w: float = 1,
-    channel_l: float = 10.0,
+    channel_l: float = 10,
+    wire_cross_section: gf.CrossSection | str = "nbtin",
     anticrowding_factor: float = 1.2,
-    nanowire_layer: Layer = (1, 0),
-    guide_w: float = 0.5,
-    guide_layer: Layer = (8, 0),
-    cladding_layer: Layer = None,
+    waveguide_cross_section: gf.CrossSection | str = "strip",
 ) -> gf.Component:
+    if isinstance(wire_cross_section, str):
+        wire_cross_section = gf.get_cross_section(wire_cross_section)
+    if isinstance(waveguide_cross_section, str):
+        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
+
     # Add the nanowire
     C = gf.Component()
     nanowire = C << variable_length_constriction(
         channel_w=channel_w,
-        source_w=source_w,
         channel_l=channel_l,
-        layer=nanowire_layer,
         anticrowding_factor=anticrowding_factor,
+        cross_section=wire_cross_section,
     )
 
-    # Add the waveguide
-    if cladding_layer:
-        waveguide = C << straight_waveguide(
-            cross_section=gf.cross_section.strip(
-                layer=guide_layer, width=guide_w, cladding_layer=cladding_layer
-            )
-        )
-    else:
-        waveguide = C << straight_waveguide(
-            cross_section=gf.cross_section.strip(layer=guide_layer, width=guide_w)
-        )
+    waveguide = C << straight_waveguide(
+        cross_section=waveguide_cross_section,
+        length=10,
+    )
 
     # Position the waveguide in the middle of the nanowire
     waveguide.rotate(90)
@@ -48,9 +42,9 @@ def straight_snspd(
 
     # Add the ports
     for port in nanowire.ports:
-        C.add_port(name=port.name, port=port, layer=nanowire_layer)
+        C.add_port(name=port.name, port=port, cross_section=wire_cross_section)
     for port in waveguide.ports:
-        C.add_port(name=port.name, port=port, layer=guide_layer)
+        C.add_port(name=port.name, port=port, cross_section=waveguide_cross_section)
 
     return C
 
@@ -61,6 +55,8 @@ def spot_snspd(
     wire_cross_section: Union[gf.CrossSection, str] = "metal1",
     anticrowding_factor: float = 1.2,
     waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
+    add_output_grating: bool = False,
+    output_grating: str | gf.Component = "grating_coupler_traditional",
 ) -> gf.Component:
     if isinstance(wire_cross_section, str):
         wire_cross_section = gf.get_cross_section(wire_cross_section)
@@ -84,10 +80,32 @@ def spot_snspd(
     )
 
     # Add the ports
+    if add_output_grating:
+        if isinstance(output_grating, str):
+            output_grating = gf.get_component(
+                output_grating, cross_section=waveguide_cross_section
+            )
+        grating = C << output_grating
+        grating.rotate(90)
+        grating.connect(
+            "o1",
+            waveguide.ports["o2"],
+        )
+    else:
+        C.add_port(
+            name="o2",
+            port=waveguide.ports["o2"],
+            cross_section=waveguide_cross_section,
+        )
+
+    C.add_port(
+        name="o1",
+        port=waveguide.ports["o1"],
+        cross_section=waveguide_cross_section,
+    )
+
     for port in nanowire.ports:  # Nanowire ports
         C.add_port(name=port.name, port=port, cross_section=wire_cross_section)
-    for port in waveguide.ports:  # Waveguide ports
-        C.add_port(name=port.name, port=port, layer=waveguide_cross_section.layer)
 
     return C
 
