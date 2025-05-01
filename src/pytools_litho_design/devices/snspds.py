@@ -7,18 +7,46 @@ from typing import Union
 def spot_snspd_device(
     channel_w: float = 0.3,
     wire_cross_section: Union[gf.CrossSection, str] = "nbtin",
+    superconductor_cross_section: Union[gf.CrossSection, str] = "nbtin",
     anticrowding_factor: float = 0.4,
     waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
-    add_pads: bool = True,
+    waveguide_extension: float = 0,
+    add_markers: bool = True,
+    marker_distance: float = 100,
+    marker_size: float = (50, 50),
+    marker_component: str = "ebl_marker",
+    add_pads: bool = False,
+    pad_component: str = "pad",
+    taper_pads: bool = False,
+    pad_distance: float = 100,
     pad_size: float = (50, 50),
 ) -> gf.Component:
+    if isinstance(wire_cross_section, str):
+        wire_cross_section = gf.get_cross_section(wire_cross_section)
+    if isinstance(superconductor_cross_section, str):
+        superconductor_cross_section = gf.get_cross_section(
+            superconductor_cross_section
+        )
+    if isinstance(waveguide_cross_section, str):
+        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
+    if isinstance(pad_component, str):
+        pad_component = gf.get_component(pad_component)
+    if isinstance(marker_component, str):
+        marker_component = gf.get_component(marker_component)
+
+    # Create the SNSPD component
     SNSPD = gf.Component()  # The chip parent component
     SNSPD_COMPONENT = spot_snspd(
         channel_w=channel_w,
         wire_cross_section=wire_cross_section,
         anticrowding_factor=anticrowding_factor,
         waveguide_cross_section=waveguide_cross_section,
+        waveguide_extension=waveguide_extension,
     )
+    if isinstance(wire_cross_section, str):
+        wire_cross_section = gf.get_cross_section(wire_cross_section)
+    if isinstance(waveguide_cross_section, str):
+        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
 
     # Add the snspd component to the parent component
     snspd_ref = SNSPD << SNSPD_COMPONENT
@@ -27,30 +55,25 @@ def spot_snspd_device(
     if add_pads:
         PAD = gf.components.pad(size=pad_size, layer=wire_cross_section.layer)
         left_pad = SNSPD << PAD
-        left_pad.dmove((-pad_size[0], 0))
+        left_pad.dmove((pad_size[0] + pad_distance, 0))
         right_pad = SNSPD << PAD
-        right_pad.dmove((pad_size[0], 0))
+        right_pad.dmove((-pad_size[0] - pad_distance, 0))
 
-        gf.routing.route_single_electrical(
-            component=SNSPD,
-            port1=left_pad.ports["e3"],
-            port2=snspd_ref.ports["e1"],
+        gf.routing.route_bundle(
+            SNSPD,
+            [left_pad.ports["e1"], right_pad.ports["e3"]],
+            [snspd_ref.ports["e1"], snspd_ref.ports["e2"]],
             cross_section=wire_cross_section,
+            auto_taper=taper_pads,
         )  # Route the left pad
-
-        gf.routing.route_single_electrical(
-            component=SNSPD,
-            port1=right_pad.ports["e1"],
-            port2=snspd_ref.ports["e2"],
-            cross_section=wire_cross_section,
-        )  # Route the right pad
 
         # Extend the waveguide to the edges of the pads
         # Length should be half the pad size
         straight_path = gf.components.straight(
-            length=pad_size[0] / 2,
+            length=pad_size[0] / 2 + waveguide_extension,
             cross_section=waveguide_cross_section,
         )
+
         top_extension = SNSPD << straight_path
         top_extension.connect(
             top_extension.ports["o1"],

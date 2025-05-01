@@ -55,6 +55,7 @@ def spot_snspd(
     wire_cross_section: Union[gf.CrossSection, str] = "metal1",
     anticrowding_factor: float = 1.2,
     waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
+    waveguide_extension: float = 0,
     add_output_grating: bool = False,
     output_grating: str | gf.Component = "grating_coupler_traditional",
 ) -> gf.Component:
@@ -72,7 +73,10 @@ def spot_snspd(
     )
 
     # Add the waveguide to the middle of the nanowire
-    waveguide = C << straight_waveguide(cross_section=waveguide_cross_section)
+    length = 10 + 2 * waveguide_extension
+    waveguide = C << straight_waveguide(
+        cross_section=waveguide_cross_section, length=length
+    )
     waveguide.rotate(90)
     waveguide.center = (
         nanowire.xmin + nanowire.xsize / 2,

@@ -30,7 +30,7 @@ DEMO_TRANSITIONS = {
     ),
     DEMO_LAYERS.NBTIN: partial(
         gf.components.taper_electrical,
-        layer=DEMO_LAYERS.NBTIN,
+        cross_section="nbtin",
         port_names=("e1", "e2"),
         port_types=("electrical", "electrical"),
     ),
@@ -38,12 +38,14 @@ DEMO_TRANSITIONS = {
         taper_nbtin_au,
         layer_nbtin=DEMO_LAYERS.NEG_NBTIN,
         layer_au=DEMO_LAYERS.AU_PADS,
-        cross_section=gf.cross_section.metal_routing(layer=DEMO_LAYERS.NEG_NBTIN),
+        nbtin_cross_section="neg_nbtin",
+        au_cross_section="au",
     ),
     (DEMO_LAYERS.AU_PADS, DEMO_LAYERS.NEG_NBTIN): partial(
         taper_au_nbtin,
         layer_nbtin=DEMO_LAYERS.NEG_NBTIN,
         layer_au=DEMO_LAYERS.AU_PADS,
-        cross_section=gf.cross_section.metal_routing(layer=DEMO_LAYERS.NEG_NBTIN),
+        nbtin_cross_section="neg_nbtin",
+        au_cross_section="au",
     ),
 }

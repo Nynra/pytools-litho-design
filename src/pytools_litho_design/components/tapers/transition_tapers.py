@@ -84,26 +84,23 @@ def taper_metal_to_pad(
 
 @gf.cell
 def taper_nbtin_au(
-    width1: float = 0.5,
-    width2: float = 1,
-    length: float = 20,
-    layer_nbtin: LayerSpec = "NEG_NBTIN",
-    layer_au: LayerSpec = "AU_PADS",
-    width_tip_nbtin: float = 0.15,
-    width_tip_au: float = 0.15,
-    cross_section: CrossSectionSpec = "metal1",
+    nbtin_length: float = 10.0,
+    nbtin_end_width: float = 0.5,
+    nbtin_cross_section: CrossSectionSpec = "nbtin",
+    au_cross_section: CrossSectionSpec = "au",
+    au_end_width: float = 0.5,
 ) -> gf.Component:
     """Taper from strip to nitride."""
     return gf.components.taper(
-        layer_wg=layer_nbtin,
-        layer_slab=layer_au,
-        length=length,
-        width1=width1,
-        width2=width_tip_nbtin,
-        w_slab1=width_tip_au,
-        w_slab2=width2,
+        layer_wg=nbtin_cross_section.layer,
+        layer_slab=au_cross_section.layer,
+        length=nbtin_length,
+        width1=nbtin_cross_section.width,
+        width2=nbtin_end_width,
+        w_slab1=nbtin_cross_section.width,
+        w_slab2=au_end_width,
         use_slab_port=True,
-        cross_section=cross_section,
+        cross_section=nbtin_cross_section,
     )
 
 
