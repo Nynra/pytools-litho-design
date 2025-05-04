@@ -80,30 +80,50 @@ def grating_coupler_cluster(
         CHIP,
         [
             grating1.ports["o1"],
-            grating2.ports["o1"],
-            grating3.ports["o1"],
-            grating4.ports["o1"],
+            grating5.ports["o1"],
         ],
         [
             output1.ports["o1"],
-            output2.ports["o1"],
-            output3.ports["o1"],
-            output4.ports["o1"],
+            output5.ports["o1"],
         ],
         cross_section=cross_section,
     )
     gf.routing.route_bundle(
         CHIP,
         [
-            grating5.ports["o1"],
-            grating6.ports["o1"],
+            grating3.ports["o1"],
             grating7.ports["o1"],
+        ],
+        [
+            output3.ports["o1"],
+            output7.ports["o1"],
+        ],
+        cross_section=cross_section,
+    )
+    gf.routing.route_bundle(
+        CHIP,
+        [
+            grating2.ports["o1"],
+            grating6.ports["o1"],
+            #         grating7.ports["o1"],
+            #         grating8.ports["o1"],
+        ],
+        [
+            output2.ports["o1"],
+            output6.ports["o1"],
+            #         output7.ports["o1"],
+            #         output8.ports["o1"],
+        ],
+        cross_section=cross_section,
+    )
+    gf.routing.route_bundle(
+        CHIP,
+        [
+            grating4.ports["o1"],
             grating8.ports["o1"],
         ],
         [
-            output5.ports["o1"],
-            output6.ports["o1"],
-            output7.ports["o1"],
+            output4.ports["o1"],
             output8.ports["o1"],
         ],
         cross_section=cross_section,

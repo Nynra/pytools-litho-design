@@ -1,10 +1,7 @@
 from .layers import DEMO_LAYERS
 from functools import partial
 import gdsfactory as gf
-from ...components.tapers.transition_tapers import (
-    taper_nbtin_au,
-    taper_au_nbtin,
-)
+from ...components.tapers.transition_tapers import transition_taper
 
 
 # LAYER_CONNECTIVITY = [
@@ -16,9 +13,16 @@ from ...components.tapers.transition_tapers import (
 
 
 DEMO_TRANSITIONS = {
+    # In layer tapers for auto tapering
     DEMO_LAYERS.AU_PADS: partial(
         gf.components.taper_electrical,
         layer=DEMO_LAYERS.AU_PADS,
+        port_names=("e1", "e2"),
+        port_types=("electrical", "electrical"),
+    ),
+    DEMO_LAYERS.AU: partial(
+        gf.components.taper_electrical,
+        layer=DEMO_LAYERS.AU,
         port_names=("e1", "e2"),
         port_types=("electrical", "electrical"),
     ),
@@ -34,18 +38,30 @@ DEMO_TRANSITIONS = {
         port_names=("e1", "e2"),
         port_types=("electrical", "electrical"),
     ),
+    # Layer Transitions
     (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.AU_PADS): partial(
-        taper_nbtin_au,
-        layer_nbtin=DEMO_LAYERS.NEG_NBTIN,
-        layer_au=DEMO_LAYERS.AU_PADS,
-        nbtin_cross_section="neg_nbtin",
-        au_cross_section="au",
+        transition_taper,
+        cross_section_start="neg_nbtin",
+        cross_section_end="au_pads",
     ),
-    (DEMO_LAYERS.AU_PADS, DEMO_LAYERS.NEG_NBTIN): partial(
-        taper_au_nbtin,
-        layer_nbtin=DEMO_LAYERS.NEG_NBTIN,
-        layer_au=DEMO_LAYERS.AU_PADS,
-        nbtin_cross_section="neg_nbtin",
-        au_cross_section="au",
+    (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.AU): partial(
+        transition_taper,
+        cross_section_start="neg_nbtin",
+        cross_section_end="au",
+    ),
+    (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.NBTIN): partial(
+        transition_taper,
+        cross_section_start="neg_nbtin",
+        cross_section_end="nbtin",
+    ),
+    (DEMO_LAYERS.NBTIN, DEMO_LAYERS.AU_PADS): partial(
+        transition_taper,
+        cross_section_start="nbtin",
+        cross_section_end="au_pads",
+    ),
+    (DEMO_LAYERS.NBTIN, DEMO_LAYERS.AU): partial(
+        transition_taper,
+        cross_section_start="nbtin",
+        cross_section_end="au",
     ),
 }

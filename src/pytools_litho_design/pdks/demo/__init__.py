@@ -11,23 +11,7 @@ def get_demo_pdk(activate: bool = False) -> gf.Pdk:
     )
     from .transistions import DEMO_TRANSITIONS
     from .cells import DEMO_CELLS, DEMO_CONTAINERS_DICT
-    from ...cross_sections import (
-        waveguide,
-        strip,
-        rib,
-        nbtin,
-        neg_nbtin,
-        metal1,
-    )
-
-    DEMO_CROSS_SECTIONS = {
-        "waveguide": waveguide,
-        "strip": strip,
-        "rib": rib,
-        "nbtin": nbtin,
-        "neg_nbtin": neg_nbtin,
-        "metal1": metal1,
-    }
+    from .cross_sections import DEMO_CROSS_SECTIONS
 
     DEMO_CONSTANTS = {
         "fiber_input_to_output_spacing": 200,
@@ -35,6 +19,7 @@ def get_demo_pdk(activate: bool = False) -> gf.Pdk:
         "pad_pitch": 100,
         "pad_size": (100, 100),
     }
+
     generic_pdk = gf.generic_tech.get_generic_pdk()
     pdk = gf.Pdk(
         name="demo",
