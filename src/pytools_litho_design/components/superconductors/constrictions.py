@@ -8,6 +8,7 @@ from typing import Tuple, Optional, Union
 # from qnngds.utilities import PadPlacement, QnnDevice, WireBond, MultiProbeTip
 import gdsfactory as gf
 from .optimal_steps import optimal_step
+from ..geometries import rectangle
 
 
 @gf.cell
@@ -72,56 +73,36 @@ def variable_length_constriction(
     num_pts: int = 100,
 ) -> gf.Component:
     """Creates a single wire, made of two optimal steps"""
+    if isinstance(cross_section, str):
+        cross_section = gf.get_cross_section(cross_section)
     NANOWIRE = gf.Component()
     # wire = pg.optimal_step(
     #     channel_w, source_w, symmetric=True, num_pts=num_pts, layer=layer
     # )
     WIRE = optimal_step(
-        cross_section=cross_section,
         end_width=channel_w,
         num_pts=num_pts,
         symmetric=True,
         anticrowding_factor=anticrowding_factor,
+        cross_section=cross_section,
     )
-    # for port in WIRE.ports:
-    #     # A hack but cant find a way to initate with elektrical ports....
-    #     port.port_type = "electrical"
-
-    # line = pg.rectangle((constr_length, channel_w), layer=layer)
-    LINE = gf.Component()
-    line = LINE << gf.components.rectangle(
-        size=(channel_l, channel_w), layer=cross_section.layer, port_type="electrical"
-    )
-    line.center = [0, 0]
-    LINE.add_port(
-        "e1",
-        center=(-channel_l / 2, 0),
-        orientation=180,
-        port_type="electrical",
+    gf.components.rectangle
+    LINE = rectangle(
+        size=(channel_w, channel_l),
         layer=cross_section.layer,
-        width=channel_w,
     )
-    LINE.add_port(
-        "e2",
-        center=(channel_l / 2, 0),
-        orientation=0,
-        port_type="electrical",
-        layer=cross_section.layer,
-        width=channel_w,
-    )
-
     source = NANOWIRE << WIRE
-    constriction = NANOWIRE << LINE
     gnd = NANOWIRE << WIRE
-    source.connect(source.ports[0], constriction.ports["e1"])
-    gnd.connect(gnd.ports[0], constriction.ports["e2"])
+    source.connect(source.ports[0], gnd.ports[0])
 
-    NANOWIRE.add_port(name="ec1", port=constriction.ports["e1"])
-    NANOWIRE.add_port(name="ec2", port=constriction.ports["e1"])
     NANOWIRE.add_port(name="e1", port=source.ports[1])
     NANOWIRE.add_port(name="e2", port=gnd.ports[1])
-    NANOWIRE.flatten()
-    return NANOWIRE
+
+    final_NANOWIRE = gf.Component()
+    final_NANOWIRE << NANOWIRE
+    for port in NANOWIRE.get_ports_list():
+        final_NANOWIRE.add_port(name=port.name, port=port)
+    return final_NANOWIRE
 
 
 # @gf.cell

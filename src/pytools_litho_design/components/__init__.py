@@ -6,3 +6,4 @@ from . import markers
 from . import bends
 from . import pads
 from . import waveguides
+from . import geometries

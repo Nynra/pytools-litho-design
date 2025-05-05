@@ -13,48 +13,6 @@ def straight_snspd(
     wire_cross_section: gf.CrossSection | str = "nbtin",
     anticrowding_factor: float = 1.2,
     waveguide_cross_section: gf.CrossSection | str = "strip",
-) -> gf.Component:
-    if isinstance(wire_cross_section, str):
-        wire_cross_section = gf.get_cross_section(wire_cross_section)
-    if isinstance(waveguide_cross_section, str):
-        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
-
-    # Add the nanowire
-    C = gf.Component()
-    nanowire = C << variable_length_constriction(
-        channel_w=channel_w,
-        channel_l=channel_l,
-        anticrowding_factor=anticrowding_factor,
-        cross_section=wire_cross_section,
-    )
-
-    waveguide = C << straight_waveguide(
-        cross_section=waveguide_cross_section,
-        length=10,
-    )
-
-    # Position the waveguide in the middle of the nanowire
-    waveguide.rotate(90)
-    waveguide.center = (
-        nanowire.xmin + nanowire.xsize / 2,
-        nanowire.ymin + nanowire.ysize / 2,
-    )
-
-    # Add the ports
-    for port in nanowire.ports:
-        C.add_port(name=port.name, port=port, cross_section=wire_cross_section)
-    for port in waveguide.ports:
-        C.add_port(name=port.name, port=port, cross_section=waveguide_cross_section)
-
-    return C
-
-
-@gf.cell
-def spot_snspd(
-    channel_w: float = 0.5,
-    wire_cross_section: Union[gf.CrossSection, str] = "metal1",
-    anticrowding_factor: float = 1.2,
-    waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
     waveguide_extension: float = 0,
     add_output_grating: bool = False,
     output_grating: str | gf.Component = "grating_coupler_traditional",
@@ -66,11 +24,19 @@ def spot_snspd(
 
     # Add the nanowire
     C = gf.Component()
-    nanowire = C << spot_constriction(
-        channel_w=channel_w,
-        anticrowding_factor=anticrowding_factor,
-        cross_section=wire_cross_section,
-    )
+    if channel_l == 0:
+        nanowire = C << spot_constriction(
+            channel_w=channel_w,
+            anticrowding_factor=anticrowding_factor,
+            cross_section=wire_cross_section,
+        )
+    else:
+        nanowire = C << variable_length_constriction(
+            channel_w=channel_w,
+            channel_l=channel_l,
+            anticrowding_factor=anticrowding_factor,
+            cross_section=wire_cross_section,
+        )
 
     # Add the waveguide to the middle of the nanowire
     length = 10 + 2 * waveguide_extension
@@ -112,6 +78,28 @@ def spot_snspd(
         C.add_port(name=port.name, port=port, cross_section=wire_cross_section)
 
     return C
+
+
+@gf.cell
+def spot_snspd(
+    channel_w: float = 0.5,
+    wire_cross_section: Union[gf.CrossSection, str] = "metal1",
+    anticrowding_factor: float = 1.2,
+    waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
+    waveguide_extension: float = 0,
+    add_output_grating: bool = False,
+    output_grating: str | gf.Component = "grating_coupler_traditional",
+) -> gf.Component:
+    return straight_snspd(
+        channel_w=channel_w,
+        channel_l=0,
+        wire_cross_section=wire_cross_section,
+        anticrowding_factor=anticrowding_factor,
+        waveguide_cross_section=waveguide_cross_section,
+        waveguide_extension=waveguide_extension,
+        add_output_grating=add_output_grating,
+        output_grating=output_grating,
+    )
 
 
 # def hairpin_snspd(

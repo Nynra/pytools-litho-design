@@ -18,7 +18,9 @@ def grating_coupler_array(
     if isinstance(cross_section, str):
         cross_section = gf.get_cross_section(cross_section)
 
-    min_gratings = 5
+    min_gratings = 1
+    min_gratings += 2 if with_loopback else 0
+    min_gratings += 2 if with_loss_structure else 0
     if n < min_gratings:
         raise ValueError(
             f"n must be at least {min_gratings} for this configuration, got {n}"
