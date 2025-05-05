@@ -7,3 +7,4 @@ from . import bends
 from . import pads
 from . import waveguides
 from . import geometries
+from . import dies

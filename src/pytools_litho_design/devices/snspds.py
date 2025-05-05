@@ -197,17 +197,13 @@ def straight_snspd_device(
         snspd_ref.ports["o1"],
     )
 
-    # Create the final component
-    FINAL_SNSPD = gf.Component()
-    snspd_ref = FINAL_SNSPD << SNSPD
-
     # Add the pads to the final component
-    if add_pads:
-        FINAL_SNSPD.add_port(name="e1", port=left_pad.ports["e1"])
-        FINAL_SNSPD.add_port(name="e2", port=right_pad.ports["e1"])
-    FINAL_SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
-    FINAL_SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
-    return FINAL_SNSPD
+    if not add_pads:
+        SNSPD.add_port(name="e1", port=snspd_ref.ports["e1"])
+        SNSPD.add_port(name="e2", port=snspd_ref.ports["e2"])
+    SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
+    SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
+    return SNSPD
 
 
 if __name__ == "__main__":
