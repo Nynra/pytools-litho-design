@@ -2,11 +2,9 @@ from .layers import DEMO_LAYERS
 from functools import partial
 import gdsfactory as gf
 from ...components.tapers.tapers import (
-    electrical_transition_taper,
-    optical_transition_taper,
     electrical_taper,
     optical_taper,
-    taper,
+    taper_strip_to_ridge,
 )
 
 
@@ -19,55 +17,41 @@ from ...components.tapers.tapers import (
 
 
 DEMO_TRANSITIONS = {
-    # In layer tapers for auto tapering
-    DEMO_LAYERS.AU_PADS: partial(
-        electrical_taper,
-        layer=DEMO_LAYERS.AU_PADS,
-        port_names=("e1", "e2"),
-        port_types=("electrical", "electrical"),
-    ),
     DEMO_LAYERS.AU: partial(
         electrical_taper,
-        layer=DEMO_LAYERS.AU,
-        port_names=("e1", "e2"),
-        port_types=("electrical", "electrical"),
-    ),
-    DEMO_LAYERS.NEG_NBTIN: partial(
-        electrical_taper,
-        layer=DEMO_LAYERS.NEG_NBTIN,
-        port_names=("e1", "e2"),
-        port_types=("electrical", "electrical"),
+        cross_section="au",
     ),
     DEMO_LAYERS.NBTIN: partial(
         electrical_taper,
         cross_section="nbtin",
-        port_names=("e1", "e2"),
-        port_types=("electrical", "electrical"),
     ),
+    DEMO_LAYERS.SIO2: partial(optical_taper, cross_section="sio2"),
+    DEMO_LAYERS.SHALLOW_ETCH: partial(optical_taper, cross_section="shallow_etch"),
+    DEMO_LAYERS.DEEP_ETCH: partial(optical_taper, cross_section="deep_etch"),
+    DEMO_LAYERS.CLADDING: partial(optical_taper, cross_section="cladding"),
     # Layer Transitions
-    (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.AU_PADS): partial(
-        electrical_transition_taper,
-        cross_section_start="neg_nbtin",
-        cross_section_end="au_pads",
-    ),
-    (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.AU): partial(
-        electrical_transition_taper,
-        cross_section_start="neg_nbtin",
-        cross_section_end="au",
-    ),
-    (DEMO_LAYERS.NEG_NBTIN, DEMO_LAYERS.NBTIN): partial(
-        electrical_transition_taper,
-        cross_section_start="neg_nbtin",
-        cross_section_end="nbtin",
-    ),
-    (DEMO_LAYERS.NBTIN, DEMO_LAYERS.AU_PADS): partial(
-        electrical_transition_taper,
-        cross_section_start="nbtin",
-        cross_section_end="au_pads",
-    ),
     (DEMO_LAYERS.NBTIN, DEMO_LAYERS.AU): partial(
-        electrical_transition_taper,
-        cross_section_start="nbtin",
-        cross_section_end="au",
+        taper_strip_to_ridge,
+        layer_wg="NBTIN",
+        layer_slab="AU",
+        cross_section="nbtin",
+        port_type="electrical",
+        use_slab_port=True,
+    ),
+    (DEMO_LAYERS.AU, DEMO_LAYERS.NBTIN): partial(
+        taper_strip_to_ridge,
+        layer_wg="AU",
+        layer_slab="NBTIN",
+        cross_section="au",
+        port_type="electrical",
+        use_slab_port=True,
+    ),
+    (DEMO_LAYERS.SIO2, DEMO_LAYERS.CLADDING): partial(
+        taper_strip_to_ridge,
+        layer_wg="SIO2",
+        layer_slab="CLADDING",
+        cross_section="sio2",
+        port_type="optical",
+        use_slab_port=False,
     ),
 }

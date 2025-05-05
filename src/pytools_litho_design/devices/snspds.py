@@ -123,6 +123,7 @@ def straight_snspd_device(
     marker_distance: float = 100,
     marker_size: float = (50, 50),
     marker_component: str = "ebl_marker",
+    add_wire_transition: bool = True,
     add_pads: bool = False,
     pad_component: str = "pad",
     taper_pads: bool = False,
@@ -160,6 +161,9 @@ def straight_snspd_device(
 
     # Add the snspd component to the parent component
     snspd_ref = SNSPD << SNSPD_COMPONENT
+
+    if add_wire_transition:
+        
 
     # Add the elektrical pads
     if add_pads:

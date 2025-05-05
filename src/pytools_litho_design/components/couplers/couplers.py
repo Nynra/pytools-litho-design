@@ -3,7 +3,8 @@ from functools import partial
 import numpy as np
 
 
-coupler = partial(gf.components.coupler)
+# coupler = partial(gf.components.coupler)
+from gdsfactory.components import coupler
 
 
 @gf.cell

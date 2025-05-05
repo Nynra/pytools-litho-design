@@ -8,6 +8,8 @@ def get_demo_pdk(activate: bool = False) -> gf.Pdk:
 
     from .layers import (
         DEMO_LAYERS,
+        DEMO_PORT_MARKER_LAYER_TO_TYPE,
+        DEMO_PORT_LAYER_TO_TYPE,
     )
     from .transistions import DEMO_TRANSITIONS
     from .cells import DEMO_CELLS, DEMO_CONTAINERS_DICT

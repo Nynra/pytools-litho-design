@@ -5,22 +5,11 @@ from gdsfactory.cross_section import cross_section, CrossSection
 from gdsfactory import typings
 
 # Waveguide cross sections
-strip = partial(gf.cross_section.strip, width=0.5, layer="WAVEGUIDE")
-waveguide_tight_corners = strip
-waveguide_low_loss_routing = partial(
-    gf.cross_section.strip, width=0.5, layer="WAVEGUIDE", radius_min=100
-)
-rib = partial(
-    gf.cross_section.rib,
-    width=0.5,
-    layer="WAVEGUIDE",
-    radius_min=100,
-    cladding_layers=["CLADDING"],
-    # cladding_offsets=(3,),
-    # cladding_simplify=(50 * 10e-9,),
-)
+sio2 = partial(gf.cross_section.strip, layer="SIO2")
+sio2_rib = partial(gf.cross_section.rib, layer="SIO2", cladding_layers=["CLADDING"])
+sio2_routing = partial(sio2, radius=120, radius_min=100)
+sio_rib_routing = partial(sio2_rib, radius=120, radius_min=100)
 
-# Metal cross sections
 nbtin = partial(
     gf.cross_section.metal1,
     width=10,
@@ -29,16 +18,6 @@ nbtin = partial(
     port_names=port_names_electrical,
     port_types=port_types_electrical,
 )
-neg_nbtin = partial(
-    gf.cross_section.metal1,
-    width=10,
-    radius_min=10,
-    layer="NEG_NBTIN",
-    port_names=port_names_electrical,
-    port_types=port_types_electrical,
-)
-metal1 = nbtin
-metal2 = neg_nbtin
 
 au = partial(
     gf.cross_section.metal1,
@@ -48,17 +27,30 @@ au = partial(
     port_types=port_types_electrical,
 )
 
-au_pads = au
+shallow_etch = partial(gf.cross_section.metal1, layer="SHALLOW_ETCH")
+deep_etch = partial(gf.cross_section.metal1, layer="DEEP_ETCH")
+cladding = partial(gf.cross_section.strip, layer="CLADDING")
+
+# For compatibility with generic gdsfacoty models
+strip = sio2
+rib = sio2_rib
+metal1 = nbtin
+metal2 = au
+metal_routing = au
 
 DEMO_CROSS_SECTIONS = {
-    "waveguide_low_loss_routing": waveguide_low_loss_routing,
-    "waveguide_tight_corners": waveguide_tight_corners,
+    "sio2": sio2,
+    "sio2_rib": sio2_rib,
+    "sio2_routing": sio2_routing,
+    "sio_rib_routing": sio_rib_routing,
+    "nbtin": nbtin,
+    "au": au,
+    "shallow_etch": shallow_etch,
+    "deep_etch": deep_etch,
+    "cladding": cladding,
     "strip": strip,
     "rib": rib,
-    "nbtin": nbtin,
-    "neg_nbtin": neg_nbtin,
     "metal1": metal1,
     "metal2": metal2,
-    "au": au,
-    "au_pads": au_pads,
+    "metal_routing": metal_routing,
 }

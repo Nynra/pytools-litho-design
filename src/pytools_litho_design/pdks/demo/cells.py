@@ -9,6 +9,9 @@ from ...components import (
     texts,
     waveguides,
     rings,
+    pads,
+    geometries,
+    dies,
 )
 
 # Add all the default cells and some custom ones
@@ -23,6 +26,9 @@ DEMO_CELLS = get_cells(
         texts,
         waveguides,
         rings,
+        pads,
+        geometries,
+        dies,
     ]
 )
 
