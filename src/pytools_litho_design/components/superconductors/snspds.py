@@ -51,7 +51,7 @@ def straight_snspd(
     )
     if add_channel_protection:
         PROTECTION_LAYER = gf.components.rectangle(
-            size=(nanowire.xsize * 0.7, nanowire.ysize * 0.7),
+            size=(nanowire.xsize * 0.5, nanowire.ysize * 0.5),
             layer=waveguide_cross_section.layer,
         ).copy()
         rinner = 2000
@@ -112,6 +112,7 @@ def spot_snspd(
     waveguide_extension: float = 0,
     add_output_grating: bool = False,
     output_grating: str | gf.Component = "grating_coupler_traditional",
+    add_channel_protection: bool = True,
 ) -> gf.Component:
     return straight_snspd(
         channel_w=channel_w,
@@ -122,6 +123,7 @@ def spot_snspd(
         waveguide_extension=waveguide_extension,
         add_output_grating=add_output_grating,
         output_grating=output_grating,
+        add_channel_protection=add_channel_protection,
     )
 
 

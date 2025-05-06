@@ -65,15 +65,12 @@ def taper_to_ridge(
         length=length,
         width1=width1,
         width2=width2,
-        cross_section=cross_section,
         layer=layer_wg,
     )
     taper_slab = taper_func(
         length=length,
         width1=w_slab1,
         width2=w_slab2,
-        cross_section=cross_section,
-        with_bbox=False,
         layer=layer_slab,
     )
 

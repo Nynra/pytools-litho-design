@@ -11,7 +11,7 @@ def get_demo_pdk(activate: bool = False) -> gf.Pdk:
         DEMO_PORT_MARKER_LAYER_TO_TYPE,
         DEMO_PORT_LAYER_TO_TYPE,
     )
-    from .transistions import DEMO_TRANSITIONS
+    from .transitions import DEMO_TRANSITIONS
     from .cells import DEMO_CELLS, DEMO_CONTAINERS_DICT
     from .cross_sections import DEMO_CROSS_SECTIONS
 

@@ -38,14 +38,14 @@ DEMO_TRANSITIONS = {
         port_type="electrical",
         use_slab_port=True,
     ),
-    (DEMO_LAYERS.AU, DEMO_LAYERS.NBTIN): partial(
-        taper_to_ridge,
-        layer_wg="AU",
-        layer_slab="NBTIN",
-        cross_section="au",
-        port_type="electrical",
-        use_slab_port=True,
-    ),
+    # (DEMO_LAYERS.AU, DEMO_LAYERS.NBTIN): partial(
+    #     taper_to_ridge,
+    #     layer_wg="AU",
+    #     layer_slab="NBTIN",
+    #     cross_section="au",
+    #     port_type="electrical",
+    #     use_slab_port=True,
+    # ),
     (DEMO_LAYERS.SIO2, DEMO_LAYERS.CLADDING): partial(
         taper_to_ridge,
         layer_wg="SIO2",

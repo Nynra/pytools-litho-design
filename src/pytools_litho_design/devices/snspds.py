@@ -171,8 +171,9 @@ def straight_snspd_device(
 
     if add_wire_transition:
         TRANSITION = taper_to_ridge(
-            width1=wire_cross_section.width,
-            width2=wire_cross_section.width,
+            length=10,
+            width1=superconductor_cross_section.width,
+            width2=superconductor_cross_section.width,
             layer_wg=superconductor_cross_section.layer,
             layer_slab=wire_cross_section.layer,
             w_slab1=wire_cross_section.width,
@@ -181,13 +182,12 @@ def straight_snspd_device(
             use_slab_port=False,
             port_type="electrical",
         ).copy()
-
         # TRANSITION.draw_ports()
         ts1 = SNSPD << TRANSITION
         ts2 = SNSPD << TRANSITION
         print(ts1.ports)
-        ts1.connect(ts1.ports["e1"], snspd_ref.ports["e1"])
-        ts2.connect(ts2.ports["e1"], snspd_ref.ports["e2"])
+        ts1.connect(ts1.ports["e2"], snspd_ref.ports["e1"])
+        ts2.connect(ts2.ports["e2"], snspd_ref.ports["e2"])
 
     # Add the elektrical pads
     if add_pads:
@@ -230,8 +230,8 @@ def straight_snspd_device(
         SNSPD.add_port(name="e1", port=snspd_ref.ports["e1"])
         SNSPD.add_port(name="e2", port=snspd_ref.ports["e2"])
     if add_wire_transition:
-        SNSPD.add_port(name="e1", port=ts2.ports["e2"], layer=wire_cross_section.layer)
-        SNSPD.add_port(name="e2", port=ts1.ports["e2"], layer=wire_cross_section.layer)
+        SNSPD.add_port(name="e1", port=ts2.ports["e1"], layer=wire_cross_section.layer)
+        SNSPD.add_port(name="e2", port=ts1.ports["e1"], layer=wire_cross_section.layer)
     SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
     SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
     return SNSPD
