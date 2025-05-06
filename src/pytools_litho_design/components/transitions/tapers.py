@@ -14,19 +14,19 @@ electrical_taper = partial(
 
 
 @gf.cell
-def taper_strip_to_ridge(
-    length: float = 10.0,
+def taper_to_ridge(
     width1: float = 0.5,
     width2: float = 0.5,
-    w_slab1: float = 0.15,
-    w_slab2: float = 6.0,
+    length: float = 10.0,
     layer_wg: LayerSpec = "SIO2",
     layer_slab: LayerSpec = "CLADDING",
+    w_slab1: float = 0.15,
+    w_slab2: float = 6.0,
     cross_section: CrossSectionSpec = "sio2",
-    use_slab_port: bool = False,
+    use_slab_port: bool = True,
     port_type: str = "optical",
 ) -> gf.Component:
-    r"""Linear taper from strip to rib.
+    r"""Linear taper between layers.
 
     Used to transition between layers of the same port type (optical or electrical)
 
@@ -94,6 +94,8 @@ def taper_strip_to_ridge(
             c.add_port(name="e2", port=taper_ref_slab.ports["e2"])
         else:
             c.add_port(name="e2", port=taper_ref_wg.ports["e2"])
+    else:
+        raise ValueError("Unknown port type")
 
     if length:
         xs.add_bbox(c)

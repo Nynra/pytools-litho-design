@@ -10,6 +10,7 @@ from typing import Union
 def straight_snspd(
     channel_w: float = 0.5,
     channel_l: float = 10,
+    add_channel_protection: bool = True,
     wire_cross_section: gf.CrossSection | str = "nbtin",
     anticrowding_factor: float = 1.2,
     waveguide_cross_section: gf.CrossSection | str = "strip",
@@ -48,6 +49,26 @@ def straight_snspd(
         nanowire.xmin + nanowire.xsize / 2,
         nanowire.ymin + nanowire.ysize / 2,
     )
+    if add_channel_protection:
+        PROTECTION_LAYER = gf.components.rectangle(
+            size=(nanowire.xsize * 0.7, nanowire.ysize * 0.7),
+            layer=waveguide_cross_section.layer,
+        ).copy()
+        rinner = 2000
+        router = rinner
+        ROUNDED_PROTECTION_LAYER = gf.Component()
+        for p in PROTECTION_LAYER.get_polygons(layers=[waveguide_cross_section.layer])[
+            gf.get_layer(waveguide_cross_section.layer)
+        ]:
+            p_round = p.round_corners(rinner, router, 200)
+            ROUNDED_PROTECTION_LAYER.add_polygon(
+                p_round, layer=waveguide_cross_section.layer
+            )
+
+        protection_rect = C << ROUNDED_PROTECTION_LAYER
+
+        # Position the center over the center of the wire
+        protection_rect.center = nanowire.center
 
     # Add the ports
     if add_output_grating:
@@ -74,8 +95,10 @@ def straight_snspd(
         cross_section=waveguide_cross_section,
     )
 
-    for port in nanowire.ports:  # Nanowire ports
-        C.add_port(name=port.name, port=port, cross_section=wire_cross_section)
+    C.add_port(name="e1", port=nanowire.ports["e1"])
+    C.add_port(name="e2", port=nanowire.ports["e2"])
+
+    C.flatten()
 
     return C
 

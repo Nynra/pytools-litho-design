@@ -1,5 +1,5 @@
 from . import superconductors
-from . import tapers
+from . import transitions
 from . import couplers
 from . import rings
 from . import markers

@@ -21,7 +21,7 @@ nbtin = partial(
 
 au = partial(
     gf.cross_section.metal1,
-    width=10,
+    width=20,
     layer="AU",
     port_names=port_names_electrical,
     port_types=port_types_electrical,

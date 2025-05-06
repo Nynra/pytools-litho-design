@@ -49,6 +49,7 @@ def spot_constriction(
         symmetric=True,
         anticrowding_factor=anticrowding_factor,
         cross_section=cross_section,
+        port_type="electrical",
     )
     source = NANOWIRE << WIRE
     gnd = NANOWIRE << WIRE
@@ -85,6 +86,7 @@ def variable_length_constriction(
         symmetric=True,
         anticrowding_factor=anticrowding_factor,
         cross_section=cross_section,
+        port_type="electrical",
     )
     gf.components.rectangle
     LINE = rectangle(
@@ -93,7 +95,10 @@ def variable_length_constriction(
     )
     source = NANOWIRE << WIRE
     gnd = NANOWIRE << WIRE
-    source.connect(source.ports[0], gnd.ports[0])
+    line = NANOWIRE << LINE
+
+    source.connect("e1", line.ports["e2"])
+    gnd.connect("e1", line.ports["e4"])
 
     NANOWIRE.add_port(name="e1", port=source.ports[1])
     NANOWIRE.add_port(name="e2", port=gnd.ports[1])
@@ -102,6 +107,7 @@ def variable_length_constriction(
     final_NANOWIRE << NANOWIRE
     for port in NANOWIRE.get_ports_list():
         final_NANOWIRE.add_port(name=port.name, port=port)
+    final_NANOWIRE.rotate(90)
     return final_NANOWIRE
 
 

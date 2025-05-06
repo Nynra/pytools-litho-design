@@ -1,5 +1,7 @@
 import gdsfactory as gf
 from ..components.superconductors.snspds import spot_snspd, straight_snspd
+
+from ..components.transitions.tapers import taper_to_ridge
 from typing import Union
 
 
@@ -15,6 +17,7 @@ def spot_snspd_device(
     marker_distance: float = 100,
     marker_size: float = (50, 50),
     marker_component: str = "ebl_marker",
+    add_wire_transition: bool = True,
     add_pads: bool = False,
     pad_component: str = "pad",
     taper_pads: bool = False,
@@ -33,6 +36,7 @@ def spot_snspd_device(
         marker_distance=marker_distance,
         marker_size=marker_size,
         marker_component=marker_component,
+        add_wire_transition=add_wire_transition,
         add_pads=add_pads,
         pad_component=pad_component,
         taper_pads=taper_pads,
@@ -114,7 +118,8 @@ def spot_snspd_device(
 def straight_snspd_device(
     channel_w: float = 0.3,
     channel_l: float = 1,
-    wire_cross_section: gf.CrossSection | str = "nbtin",
+    add_channel_protection: bool = True,
+    wire_cross_section: gf.CrossSection | str = "au",
     superconductor_cross_section: gf.CrossSection | str = "nbtin",
     anticrowding_factor: float = 0.4,
     waveguide_cross_section: gf.CrossSection | str = "waveguide",
@@ -144,26 +149,45 @@ def straight_snspd_device(
     if channel_l == 0:
         SNSPD_COMPONENT = spot_snspd(
             channel_w=channel_w,
-            wire_cross_section=wire_cross_section,
+            wire_cross_section=superconductor_cross_section,
             anticrowding_factor=anticrowding_factor,
             waveguide_cross_section=waveguide_cross_section,
             waveguide_extension=waveguide_extension,
+            add_channel_protection=add_channel_protection,
         )
     else:
         SNSPD_COMPONENT = straight_snspd(
             channel_w=channel_w,
             channel_l=channel_l,
-            wire_cross_section=wire_cross_section,
+            wire_cross_section=superconductor_cross_section,
             anticrowding_factor=anticrowding_factor,
             waveguide_cross_section=waveguide_cross_section,
             waveguide_extension=waveguide_extension,
+            add_channel_protection=add_channel_protection,
         )
 
     # Add the snspd component to the parent component
     snspd_ref = SNSPD << SNSPD_COMPONENT
 
     if add_wire_transition:
-        
+        TRANSITION = taper_to_ridge(
+            width1=wire_cross_section.width,
+            width2=wire_cross_section.width,
+            layer_wg=superconductor_cross_section.layer,
+            layer_slab=wire_cross_section.layer,
+            w_slab1=wire_cross_section.width,
+            w_slab2=superconductor_cross_section.width,
+            cross_section=wire_cross_section,
+            use_slab_port=False,
+            port_type="electrical",
+        ).copy()
+
+        # TRANSITION.draw_ports()
+        ts1 = SNSPD << TRANSITION
+        ts2 = SNSPD << TRANSITION
+        print(ts1.ports)
+        ts1.connect(ts1.ports["e1"], snspd_ref.ports["e1"])
+        ts2.connect(ts2.ports["e1"], snspd_ref.ports["e2"])
 
     # Add the elektrical pads
     if add_pads:
@@ -202,9 +226,12 @@ def straight_snspd_device(
     )
 
     # Add the pads to the final component
-    if not add_pads:
+    if not add_pads and not add_wire_transition:
         SNSPD.add_port(name="e1", port=snspd_ref.ports["e1"])
         SNSPD.add_port(name="e2", port=snspd_ref.ports["e2"])
+    if add_wire_transition:
+        SNSPD.add_port(name="e1", port=ts2.ports["e2"], layer=wire_cross_section.layer)
+        SNSPD.add_port(name="e2", port=ts1.ports["e2"], layer=wire_cross_section.layer)
     SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
     SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
     return SNSPD

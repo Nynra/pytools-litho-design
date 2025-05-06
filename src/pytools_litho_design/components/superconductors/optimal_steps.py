@@ -16,6 +16,7 @@ def optimal_step(
     width_tol: float = 1e-3,
     anticrowding_factor: float = 1.2,
     symmetric: bool = False,
+    port_type: str = "elektrical",
 ) -> Component:
     """Returns an optimally-rounded step geometry.
 
@@ -145,42 +146,68 @@ def optimal_step(
 
     D.add_polygon(list(zip(xpts, ypts)), layer=cross_section.layer)
     if not symmetric:
-        D.add_port(
-            name="e1",
-            center=(max(xpts), end_width / 2),
-            width=end_width,
-            orientation=0,
-            # layer=cross_section.layer,
-            # port_type=cross_section.port_types[1],
-            cross_section=cross_section,
-        )
-        D.add_port(
-            name="e2",
-            center=(min(xpts), cross_section.width / 2),
-            # width=cross_section.width,
-            orientation=180,
-            # layer=cross_section.layer,
-            # port_type=cross_section.ports[0].port_type,
-            cross_section=cross_section,
-        )
-
-    if symmetric:
-        D.add_port(
-            name="e1",
-            center=(max(xpts), 0),
-            width=end_width,
-            orientation=0,
-            # layer=cross_section.layer,
-            # port_type=cross_section.port_types[1],
-            cross_section=cross_section,
-        )
-        D.add_port(
-            name="e2",
-            center=(min(xpts), 0),
-            orientation=180,
-            # port_type=cross_section.port_types[0],
-            cross_section=cross_section,
-        )
+        if port_type == "electrical":
+            D.add_port(
+                name="e1",
+                center=(max(xpts), end_width / 2),
+                width=end_width,
+                orientation=0,
+                port_type="electrical",
+                cross_section=cross_section,
+            )
+            D.add_port(
+                name="e2",
+                center=(min(xpts), cross_section.width / 2),
+                # width=cross_section.width,
+                orientation=180,
+                port_type="electrical",
+                cross_section=cross_section,
+            )
+        if port_type == "optical":
+            D.add_port(
+                name="o1",
+                center=(max(xpts), end_width / 2),
+                width=end_width,
+                orientation=0,
+                cross_section=cross_section,
+            )
+            D.add_port(
+                name="o2",
+                center=(min(xpts), cross_section.width / 2),
+                # width=cross_section.width,
+                orientation=180,
+                cross_section=cross_section,
+            )
+    else:
+        if port_type == "electrical":
+            D.add_port(
+                name="e1",
+                center=(max(xpts), 0),
+                width=end_width,
+                orientation=0,
+                port_type="electrical",
+                cross_section=cross_section,
+            )
+            D.add_port(
+                name="e2",
+                center=(min(xpts), 0),
+                orientation=180,
+                port_type="electrical",
+                cross_section=cross_section,
+            )
+        else:
+            D.add_port(
+                name="o1",
+                center=(min(xpts), 0),
+                orientation=180,
+                cross_section=cross_section,
+            )
+            D.add_port(
+                name="o2",
+                center=(max(xpts), 0),
+                orientation=0,
+                cross_section=cross_section,
+            )
 
     return D
 

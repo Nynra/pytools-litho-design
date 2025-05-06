@@ -1,10 +1,10 @@
 from .layers import DEMO_LAYERS
 from functools import partial
 import gdsfactory as gf
-from ...components.tapers.tapers import (
+from ...components.transitions.tapers import (
     electrical_taper,
     optical_taper,
-    taper_strip_to_ridge,
+    taper_to_ridge,
 )
 
 
@@ -31,15 +31,15 @@ DEMO_TRANSITIONS = {
     DEMO_LAYERS.CLADDING: partial(optical_taper, cross_section="cladding"),
     # Layer Transitions
     (DEMO_LAYERS.NBTIN, DEMO_LAYERS.AU): partial(
-        taper_strip_to_ridge,
+        taper_to_ridge,
         layer_wg="NBTIN",
         layer_slab="AU",
-        cross_section="nbtin",
+        cross_section="au",
         port_type="electrical",
         use_slab_port=True,
     ),
     (DEMO_LAYERS.AU, DEMO_LAYERS.NBTIN): partial(
-        taper_strip_to_ridge,
+        taper_to_ridge,
         layer_wg="AU",
         layer_slab="NBTIN",
         cross_section="au",
@@ -47,7 +47,7 @@ DEMO_TRANSITIONS = {
         use_slab_port=True,
     ),
     (DEMO_LAYERS.SIO2, DEMO_LAYERS.CLADDING): partial(
-        taper_strip_to_ridge,
+        taper_to_ridge,
         layer_wg="SIO2",
         layer_slab="CLADDING",
         cross_section="sio2",
