@@ -162,8 +162,11 @@ def straight_snspd_device(
     # Add the snspd component to the parent component
     snspd_ref = SNSPD << SNSPD_COMPONENT
 
-    if add_wire_transition:
-        
+    if add_wire_transition or add_pads:
+        transition = gf.components.taper_cross_section(
+            cross_section1=wire_cross_section,
+            cross_section2=superconductor_cross_section,
+        )
 
     # Add the elektrical pads
     if add_pads:
