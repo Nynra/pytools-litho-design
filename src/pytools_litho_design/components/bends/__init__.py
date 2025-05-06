@@ -1,5 +1,6 @@
 from functools import partial
 from gdsfactory.components.bends import bend_euler, bend_circular, bend_s
+from gdsfactory.components import wire_corner, wire_straight
 
 # Euler bends
 # bend_euler_s = partial(gf.components.bend_euler, npoints=100)
