@@ -51,7 +51,7 @@ def straight_snspd(
     )
     if add_channel_protection:
         PROTECTION_LAYER = gf.components.rectangle(
-            size=(nanowire.xsize * 0.8, nanowire.ysize * 0.8),
+            size=(nanowire.xsize * 0.125, channel_w * 3 + 1),
             layer=waveguide_cross_section.layer,
         ).copy()
         rinner = 2000
