@@ -16,7 +16,7 @@ def spot_constriction(
     channel_w: float = 0.1,
     cross_section: Union[str, gf.CrossSection] = "nbtin",
     anticrowding_factor: float = 1.2,
-    num_pts: int = 100,
+    num_pts: int = 500,
 ) -> gf.Component:
     """Creates a single wire, made of two optimal steps from channel_w to
     source_w.
@@ -71,7 +71,7 @@ def variable_length_constriction(
     channel_l: float = 1,
     cross_section: Union[str, gf.CrossSection] = "nbtin",
     anticrowding_factor: float = 1.2,
-    num_pts: int = 100,
+    num_pts: int = 500,
 ) -> gf.Component:
     """Creates a single wire, made of two optimal steps"""
     if isinstance(cross_section, str):

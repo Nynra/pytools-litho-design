@@ -5,52 +5,63 @@ from gdsfactory.cross_section import cross_section, CrossSection
 from gdsfactory import typings
 
 # Waveguide cross sections
+asic = partial(gf.cross_section.strip, layer="ASIC", radius_min=10)
+asic_routing = partial(asic, radius=120, radius_min=100)
 sio2 = partial(gf.cross_section.strip, layer="SIO2")
-sio2_rib = partial(gf.cross_section.rib, layer="SIO2", cladding_layers=["CLADDING"])
 sio2_routing = partial(sio2, radius=120, radius_min=100)
-sio_rib_routing = partial(sio2_rib, radius=120, radius_min=100)
+neg_sio2_bot = partial(gf.cross_section.strip, layer="NEG_SIO2_BOT")
+neg_sio2_top = partial(gf.cross_section.strip, layer="NEG_SIO2_TOP")
 
+# Metal cross section
 nbtin = partial(
     gf.cross_section.metal1,
-    width=10,
     layer="NBTIN",
     radius_min=10,
     port_names=port_names_electrical,
     port_types=port_types_electrical,
 )
-
+nbtin_routing = partial(nbtin, radius_min=50)
+# neg_nbtin = nbtin
+# neg_nbtin_routing = nbtin_routing
 au = partial(
     gf.cross_section.metal1,
-    width=20,
     layer="AU",
     port_names=port_names_electrical,
     port_types=port_types_electrical,
+    radius_min=100,
 )
+au_routing = partial(
+    au,
+    radius_min=100,
+)
+marker = au
+ti = partial(
+    gf.cross_section.metal1,
+    layer="TI",
+    port_names=port_names_electrical,
+    port_types=port_types_electrical,
+    radius_min=100,
+)
+ti_routing = partial(ti, radius_min=50)
 
-shallow_etch = partial(gf.cross_section.metal1, layer="SHALLOW_ETCH")
-deep_etch = partial(gf.cross_section.metal1, layer="DEEP_ETCH")
-cladding = partial(gf.cross_section.strip, layer="CLADDING")
-
-# For compatibility with generic gdsfacoty models
-strip = sio2
-rib = sio2_rib
-metal1 = nbtin
-metal2 = au
-metal_routing = au
+# neg_au = au
+# neg_au_routing = au_routing
+shallow_etch = partial(gf.cross_section.metal1, layer="SHALLOW_ETCH", radius_min=10)
+deep_etch = partial(gf.cross_section.metal1, layer="DEEP_ETCH", radius_min=10)
 
 DEMO_CROSS_SECTIONS = {
+    "marker": marker,
+    "asic": asic,
+    "asic_routing": asic_routing,
     "sio2": sio2,
-    "sio2_rib": sio2_rib,
     "sio2_routing": sio2_routing,
-    "sio_rib_routing": sio_rib_routing,
+    "neg_sio2_bot": neg_sio2_bot,
+    "neg_sio2_top": neg_sio2_top,
     "nbtin": nbtin,
+    "nbtin_routing": nbtin_routing,
     "au": au,
-    "shallow_etch": shallow_etch,
+    "au_routing": au_routing,
+    "ti": ti,
+    "ti_routing": ti_routing,
     "deep_etch": deep_etch,
-    "cladding": cladding,
-    "strip": strip,
-    "rib": rib,
-    "metal1": metal1,
-    "metal2": metal2,
-    "metal_routing": metal_routing,
 }

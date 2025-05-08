@@ -51,7 +51,7 @@ def straight_snspd(
     )
     if add_channel_protection:
         PROTECTION_LAYER = gf.components.rectangle(
-            size=(nanowire.xsize * 0.5, nanowire.ysize * 0.5),
+            size=(nanowire.xsize * 0.8, nanowire.ysize * 0.8),
             layer=waveguide_cross_section.layer,
         ).copy()
         rinner = 2000
@@ -97,7 +97,7 @@ def straight_snspd(
 
     C.add_port(name="e1", port=nanowire.ports["e1"])
     C.add_port(name="e2", port=nanowire.ports["e2"])
-
+    C.center = (0, 0)
     C.flatten()
 
     return C

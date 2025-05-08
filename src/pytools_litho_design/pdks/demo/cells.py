@@ -1,17 +1,18 @@
 import gdsfactory as gf
 from gdsfactory.get_factories import get_cells
 from ...components import (
+    bends,
+    containers,
     couplers,
+    geometries,
     markers,
     superconductors,
     transitions,
-    bends,
     texts,
     waveguides,
     rings,
     pads,
-    geometries,
-    dies,
+    mmi,
 )
 
 # Add all the default cells and some custom ones
@@ -28,7 +29,8 @@ DEMO_CELLS = get_cells(
         rings,
         pads,
         geometries,
-        dies,
+        containers,
+        mmi,
     ]
 )
 

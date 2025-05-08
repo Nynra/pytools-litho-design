@@ -7,10 +7,8 @@ from functools import partial
 # taper = partial(gf.components.taper)
 from gdsfactory.components import taper
 
-optical_taper = partial(taper)
-electrical_taper = partial(
-    gf.components.taper_electrical,
-)
+optical_taper = partial(taper, cross_section="asic")
+electrical_taper = partial(gf.components.taper_electrical, cross_section="nbtin")
 
 
 @gf.cell
@@ -18,11 +16,11 @@ def taper_to_ridge(
     width1: float = 0.5,
     width2: float = 0.5,
     length: float = 10.0,
-    layer_wg: LayerSpec = "SIO2",
+    layer_wg: LayerSpec = "ASIC",
     layer_slab: LayerSpec = "CLADDING",
     w_slab1: float = 0.15,
     w_slab2: float = 6.0,
-    cross_section: CrossSectionSpec = "sio2",
+    cross_section: CrossSectionSpec = "asic",
     use_slab_port: bool = True,
     port_type: str = "optical",
 ) -> gf.Component:
@@ -61,13 +59,13 @@ def taper_to_ridge(
 
     # Create tapers of the right type
     taper_func = optical_taper if port_type == "optical" else electrical_taper
-    taper_wg = taper_func(
+    taper_slab = taper_func(
         length=length,
         width1=width1,
         width2=width2,
         layer=layer_wg,
     )
-    taper_slab = taper_func(
+    taper_wg = taper_func(
         length=length,
         width1=w_slab1,
         width2=w_slab2,
@@ -80,17 +78,17 @@ def taper_to_ridge(
 
     c.info["length"] = length
     if port_type == "optical":
-        c.add_port(name="o1", port=taper_ref_wg.ports["o1"])
-        if use_slab_port:
-            c.add_port(name="o2", port=taper_ref_slab.ports["o2"])
+        c.add_port(name="o1", port=taper_ref_wg.ports["o2"])
+        if not use_slab_port:
+            c.add_port(name="o2", port=taper_ref_slab.ports["o1"])
         else:
-            c.add_port(name="o2", port=taper_ref_wg.ports["o2"])
+            c.add_port(name="o2", port=taper_ref_wg.ports["o1"])
     elif port_type == "electrical":
-        c.add_port(name="e1", port=taper_ref_slab.ports["e1"])
-        if use_slab_port:
-            c.add_port(name="e2", port=taper_ref_slab.ports["e2"])
+        c.add_port(name="e1", port=taper_ref_slab.ports["e2"])
+        if not use_slab_port:
+            c.add_port(name="e2", port=taper_ref_slab.ports["e1"])
         else:
-            c.add_port(name="e2", port=taper_ref_wg.ports["e2"])
+            c.add_port(name="e2", port=taper_ref_wg.ports["e1"])
     else:
         raise ValueError("Unknown port type")
 

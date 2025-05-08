@@ -109,8 +109,8 @@ def ebl_marker(
         text_size=text_size,
     )
     CROSS = gf.components.cross(
-        length=gap / 2,
-        width=2 * width_box,
+        length=gap,
+        width=width_box,
         layer=cross_section.layer,
         port_type="optical",
     )

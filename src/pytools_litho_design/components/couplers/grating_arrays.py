@@ -279,7 +279,43 @@ def grating_coupler_cluster(
     return FINAL_CHIP
 
 
-# if __name__ == "__main__":
+@gf.cell
+def grating_coupler_opposing(
+    grating: str | gf.Component = "grating_coupler_traditional",
+    n: int = 4,
+    distance: int = 150,
+    pitch: int = 200,
+    cross_section: str | gf.Component = "asic",
+) -> gf.Component:
+    assert n % 2 == 0, "n must be even"
+    n_side = int(n / 2)
+    GRATING_ARRAY = grating_coupler_array(
+        grating_coupler=grating,
+        n=n_side,
+        cross_section=cross_section,
+        with_loopback=False,
+        pitch=pitch,
+    )
+    C = gf.Component()
+    array1 = C << GRATING_ARRAY
+    array2 = C << GRATING_ARRAY
+    array2.rotate(180)
+    array1.ymin = array2.ymax + distance
+
+    # CHIP.flatten()
+    for port in array1.ports:
+        C.add_port(f"0_{port.name}", port=port)
+
+    for port in array2.ports:
+        C.add_port(f"1_{port.name}", port=port)
+    return C
+
+
+if __name__ == "__main__":
+    c = grating_coupler_opposing()
+    c.draw_ports()
+    c.show()
+
 #     get_pdk("demo", set_active=True)
 
 #     c = glued_grating_array(
