@@ -8,100 +8,105 @@ from typing import Tuple, Optional, Union
 # from qnngds.utilities import PadPlacement, QnnDevice, WireBond, MultiProbeTip
 import gdsfactory as gf
 from .optimal_steps import optimal_step
-from ..geometries import rectangle
+from ..geometries import rectangle, taper_to_ridge
 
 
-@gf.cell
-def spot_constriction(
-    channel_w: float = 0.1,
-    cross_section: Union[str, gf.CrossSection] = "nbtin",
-    anticrowding_factor: float = 1.2,
-    num_pts: int = 500,
-) -> gf.Component:
-    """Creates a single wire, made of two optimal steps from channel_w to
-    source_w.
+# @gf.cell
+# def spot_constriction(
+#     channel_w: float = 0.1,
+#     fine_cross_section: Union[str, gf.CrossSection] = "nbtin",
+#     course_cross_section: Union[str, gf.CrossSection] = "course_nbtin",
+#     anticrowding_factor: float = 1.2,
+#     num_pts: int = 500,
+# ) -> gf.Component:
+#     """Creates a single wire, made of two optimal steps from channel_w to
+#     source_w.
 
-    Parameters
-    ----------
-    channel_w : float, optional
-        The width of the channel (at the hot-spot location), by default 0.1
-    cross_section : Union[str, gf.CrossSection], optional
-        The cross-section of the wire, by default "nbtin"
-    anticrowding_factor : float, optional
-        The factor by which to increase the length of the constriction, by default 1.2
-    num_pts : int, optional
-        The number of points comprising the optimal_steps geometries, by default 100
+#     Parameters
+#     ----------
+#     channel_w : float, optional
+#         The width of the channel (at the hot-spot location), by default 0.1
+#     cross_section : Union[str, gf.CrossSection], optional
+#         The cross-section of the wire, by default "nbtin"
+#     anticrowding_factor : float, optional
+#         The factor by which to increase the length of the constriction, by default 1.2
+#     num_pts : int, optional
+#         The number of points comprising the optimal_steps geometries, by default 100
 
-    Returns
-    -------
-    gf.Component
-        A device containing 2 optimal steps joined at their channel_w end.
-    """
-    if isinstance(cross_section, str):
-        cross_section = gf.get_cross_section(cross_section)
-    NANOWIRE = gf.Component()
-    # wire = pg.optimal_step(
-    #     channel_w, source_w, symmetric=True, num_pts=num_pts, layer=layer
-    # )
-    WIRE = optimal_step(
-        end_width=channel_w,
-        num_pts=num_pts,
-        symmetric=True,
-        anticrowding_factor=anticrowding_factor,
-        cross_section=cross_section,
-        port_type="electrical",
-    )
-    source = NANOWIRE << WIRE
-    gnd = NANOWIRE << WIRE
-    source.connect(source.ports[0], gnd.ports[0])
+#     Returns
+#     -------
+#     gf.Component
+#         A device containing 2 optimal steps joined at their channel_w end.
+#     """
+#     if isinstance(fine_cross_section, str):
+#         fine_cross_section = gf.get_cross_section(fine_cross_section)
+#     if isinstance(course_cross_section, str):
+#         course_cross_section = gf.get_cross_section(course_cross_section)
 
-    NANOWIRE.add_port(name="e1", port=source.ports[1])
-    NANOWIRE.add_port(name="e2", port=gnd.ports[1])
+#     NANOWIRE = gf.Component()
+#     # wire = pg.optimal_step(
+#     #     channel_w, source_w, symmetric=True, num_pts=num_pts, layer=layer
+#     # )
+#     WIRE = optimal_step(
+#         end_width=channel_w,
+#         num_pts=num_pts,
+#         symmetric=True,
+#         anticrowding_factor=anticrowding_factor,
+#         cross_section=course_cross_section,
+#         port_type="electrical",
+#     )
+#     source = NANOWIRE << WIRE
+#     gnd = NANOWIRE << WIRE
+#     source.connect(source.ports[0], gnd.ports[0])
 
-    final_NANOWIRE = gf.Component()
-    final_NANOWIRE << NANOWIRE
-    for port in NANOWIRE.get_ports_list():
-        final_NANOWIRE.add_port(name=port.name, port=port)
-    return final_NANOWIRE
+#     NANOWIRE.add_port(name="e1", port=source.ports[1])
+#     NANOWIRE.add_port(name="e2", port=gnd.ports[1])
+
+#     final_NANOWIRE = gf.Component()
+#     final_NANOWIRE << NANOWIRE
+#     for port in NANOWIRE.get_ports_list():
+#         final_NANOWIRE.add_port(name=port.name, port=port)
+#     return final_NANOWIRE
 
 
 @gf.cell
 def variable_length_constriction(
-    channel_w: float = 0.1,
-    channel_l: float = 1,
-    cross_section: Union[str, gf.CrossSection] = "nbtin",
-    anticrowding_factor: float = 1.2,
-    num_pts: int = 500,
+    channel_length: float = 1,
+    channel_width: float = 0.1,
+    fine_cross_section: str = "nbtin",
+    coarse_cross_section: str = "course_nbtin",
+    # anticrowding_factor: float = 1.2,
+    # num_pts: int = 500,
 ) -> gf.Component:
     """Creates a single wire, made of two optimal steps"""
-    if isinstance(cross_section, str):
-        cross_section = gf.get_cross_section(cross_section)
+    fine_xs = gf.get_cross_section(fine_cross_section)
+    coarse_xs = gf.get_cross_section(coarse_cross_section)
     NANOWIRE = gf.Component()
-    # wire = pg.optimal_step(
-    #     channel_w, source_w, symmetric=True, num_pts=num_pts, layer=layer
-    # )
-    WIRE = optimal_step(
-        end_width=channel_w,
-        num_pts=num_pts,
-        symmetric=True,
-        anticrowding_factor=anticrowding_factor,
-        cross_section=cross_section,
+    WIRE = taper_to_ridge(
+        length=1.5,
+        width1=channel_width,
+        width2=channel_width,
+        slab_length=coarse_xs.width,
+        w_slab2=coarse_xs.width,
+        w_slab1=channel_width,
         port_type="electrical",
+        main_cross_section=fine_cross_section,
+        slab_cross_section=coarse_cross_section,
     )
-    gf.components.rectangle
     LINE = rectangle(
-        size=(channel_w, channel_l),
-        layer=cross_section.layer,
+        size=(channel_width, channel_length),
+        layer=fine_xs.layer,
     )
     source = NANOWIRE << WIRE
     gnd = NANOWIRE << WIRE
     line = NANOWIRE << LINE
+    # WIRE.draw_ports()
+    # LINE.draw_ports()
+    source.connect("e2", line.ports["e2"])
+    gnd.connect("e2", line.ports["e4"])
 
-    source.connect("e1", line.ports["e2"])
-    gnd.connect("e1", line.ports["e4"])
-
-    NANOWIRE.add_port(name="e1", port=source.ports[1])
-    NANOWIRE.add_port(name="e2", port=gnd.ports[1])
+    NANOWIRE.add_port(name="e1", port=source.ports[0])
+    NANOWIRE.add_port(name="e2", port=gnd.ports[0])
 
     final_NANOWIRE = gf.Component()
     final_NANOWIRE << NANOWIRE
@@ -248,50 +253,50 @@ def variable_length_constriction(
 #     return MEANDER
 
 
-def add_probe(
-    device: gf.Component,
-    probe_port: str,
-    probe_name: str,
-    probe_width: float = 0.1,
-    layer: int = 1,
-    rotation: float = 0,
-    **kwargs,
-) -> gf.Component:
-    """Add a probe to a device.
+# def add_probe(
+#     device: gf.Component,
+#     probe_port: str,
+#     probe_name: str,
+#     probe_width: float = 0.1,
+#     layer: int = 1,
+#     rotation: float = 0,
+#     **kwargs,
+# ) -> gf.Component:
+#     """Add a probe to a device.
 
-    Parameters
-    ----------
-    device : gf.Component
-        The device to add the probe to.
-    probe_port : str
-        The port to add the probe to.
-    probe_name : str
-        The name of the probe port.
-    probe_width : float, optional
-        The width of the probe, by default 0.1
-    layer : int, optional
-        The layer to draw the probe on, by default 1
-    rotation : float, optional
-        The rotation of the probe, by default 0
+#     Parameters
+#     ----------
+#     device : gf.Component
+#         The device to add the probe to.
+#     probe_port : str
+#         The port to add the probe to.
+#     probe_name : str
+#         The name of the probe port.
+#     probe_width : float, optional
+#         The width of the probe, by default 0.1
+#     layer : int, optional
+#         The layer to draw the probe on, by default 1
+#     rotation : float, optional
+#         The rotation of the probe, by default 0
 
-    Returns
-    -------
-    gf.Component
-        The device with the probe added.
-    """
-    wire = gf.components.optimal_step(
-        start_width=device.ports[probe_port].width,
-        end_width=probe_width,
-        num_pts=100,
-        symmetric=True,
-        layer=layer,
-    )
-    probe = device << wire
-    probe.connect(probe.ports[0], device.ports[probe_port])
-    if rotation:
-        probe.rotate(rotation, device.ports[probe_port].center)
-    device.add_port(name=probe_name, port=probe.ports[1])
-    return device
+#     Returns
+#     -------
+#     gf.Component
+#         The device with the probe added.
+#     """
+#     wire = gf.components.optimal_step(
+#         start_width=device.ports[probe_port].width,
+#         end_width=probe_width,
+#         num_pts=100,
+#         symmetric=True,
+#         layer=layer,
+#     )
+#     probe = device << wire
+#     probe.connect(probe.ports[0], device.ports[probe_port])
+#     if rotation:
+#         probe.rotate(rotation, device.ports[probe_port].center)
+#     device.add_port(name=probe_name, port=probe.ports[1])
+#     return device
 
 
 # if __name__ == "__main__":

@@ -95,6 +95,12 @@ def grating_coupler_traditional(
         orientation=180,
         cross_section=cross_section,
     )
+
+    # # Check if the cross_section has cladding
+    # if len(cross_section.sections) > 1:
+    #     # Add the cladding sections
+    #     for section in cross_section.sections[1:]:
+
     return c
 
 

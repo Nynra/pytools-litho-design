@@ -1,43 +1,34 @@
 import gdsfactory as gf
 import numpy as np
 from gdsfactory.typings import Layer
-from .constrictions import variable_length_constriction, spot_constriction
+
+from .constrictions import variable_length_constriction
 from gdsfactory.components.waveguides import straight as straight_waveguide
 from typing import Union
 
 
 @gf.cell
 def straight_snspd(
-    channel_w: float = 0.5,
-    channel_l: float = 10,
+    channel_width: float = 0.5,
+    channel_length: float = 10,
     add_channel_protection: bool = True,
-    wire_cross_section: gf.CrossSection | str = "nbtin",
-    anticrowding_factor: float = 1.2,
+    fine_wire_cross_section: gf.CrossSection | str = "nbtin",
+    coarse_wire_cross_section: gf.CrossSection | str = "course_nbtin",
     waveguide_cross_section: gf.CrossSection | str = "strip",
     waveguide_extension: float = 0,
-    add_output_grating: bool = False,
-    output_grating: str | gf.Component = "grating_coupler_traditional",
 ) -> gf.Component:
-    if isinstance(wire_cross_section, str):
-        wire_cross_section = gf.get_cross_section(wire_cross_section)
-    if isinstance(waveguide_cross_section, str):
-        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
+    fine_wire_xs = gf.get_cross_section(fine_wire_cross_section)
+    coarse_wire_xs = gf.get_cross_section(coarse_wire_cross_section)
+    waveguide_xs = gf.get_cross_section(waveguide_cross_section)
 
     # Add the nanowire
     C = gf.Component()
-    if channel_l == 0:
-        nanowire = C << spot_constriction(
-            channel_w=channel_w,
-            anticrowding_factor=anticrowding_factor,
-            cross_section=wire_cross_section,
-        )
-    else:
-        nanowire = C << variable_length_constriction(
-            channel_w=channel_w,
-            channel_l=channel_l,
-            anticrowding_factor=anticrowding_factor,
-            cross_section=wire_cross_section,
-        )
+    nanowire = C << variable_length_constriction(
+        channel_width=channel_width,
+        channel_length=channel_length,
+        fine_cross_section=fine_wire_cross_section,
+        coarse_cross_section=coarse_wire_cross_section,
+    )
 
     # Add the waveguide to the middle of the nanowire
     length = 10 + 2 * waveguide_extension
@@ -51,19 +42,17 @@ def straight_snspd(
     )
     if add_channel_protection:
         PROTECTION_LAYER = gf.components.rectangle(
-            size=(nanowire.xsize * 0.125, channel_w * 3 + 1),
-            layer=waveguide_cross_section.layer,
+            size=(nanowire.xsize * 0.9, channel_width * 3 + 1),
+            layer=waveguide_xs.layer,
         ).copy()
         rinner = 2000
         router = rinner
         ROUNDED_PROTECTION_LAYER = gf.Component()
-        for p in PROTECTION_LAYER.get_polygons(layers=[waveguide_cross_section.layer])[
-            gf.get_layer(waveguide_cross_section.layer)
+        for p in PROTECTION_LAYER.get_polygons(layers=[waveguide_xs.layer])[
+            gf.get_layer(waveguide_xs.layer)
         ]:
             p_round = p.round_corners(rinner, router, 200)
-            ROUNDED_PROTECTION_LAYER.add_polygon(
-                p_round, layer=waveguide_cross_section.layer
-            )
+            ROUNDED_PROTECTION_LAYER.add_polygon(p_round, layer=waveguide_xs.layer)
 
         protection_rect = C << ROUNDED_PROTECTION_LAYER
 
@@ -71,24 +60,11 @@ def straight_snspd(
         protection_rect.center = nanowire.center
 
     # Add the ports
-    if add_output_grating:
-        if isinstance(output_grating, str):
-            output_grating = gf.get_component(
-                output_grating, cross_section=waveguide_cross_section
-            )
-        grating = C << output_grating
-        grating.rotate(90)
-        grating.connect(
-            "o1",
-            waveguide.ports["o2"],
-        )
-    else:
-        C.add_port(
-            name="o2",
-            port=waveguide.ports["o2"],
-            cross_section=waveguide_cross_section,
-        )
-
+    C.add_port(
+        name="o2",
+        port=waveguide.ports["o2"],
+        cross_section=waveguide_cross_section,
+    )
     C.add_port(
         name="o1",
         port=waveguide.ports["o1"],
@@ -106,7 +82,8 @@ def straight_snspd(
 @gf.cell
 def spot_snspd(
     channel_w: float = 0.5,
-    wire_cross_section: Union[gf.CrossSection, str] = "metal1",
+    fine_wire_cross_section: Union[gf.CrossSection, str] = "metal1",
+    course_wire_cross_section: Union[gf.CrossSection, str] = "course_nbtin",
     anticrowding_factor: float = 1.2,
     waveguide_cross_section: Union[gf.CrossSection, str] = "strip",
     waveguide_extension: float = 0,
@@ -117,7 +94,8 @@ def spot_snspd(
     return straight_snspd(
         channel_w=channel_w,
         channel_l=0,
-        wire_cross_section=wire_cross_section,
+        fine_wire_cross_section=fine_wire_cross_section,
+        course_wire_cross_section=course_wire_cross_section,
         anticrowding_factor=anticrowding_factor,
         waveguide_cross_section=waveguide_cross_section,
         waveguide_extension=waveguide_extension,

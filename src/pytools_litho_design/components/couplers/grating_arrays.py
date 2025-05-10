@@ -62,14 +62,24 @@ def grating_coupler_array(
             CHIP,
             [
                 grating_array.ports["o0"],
-                grating_array.ports[f"o{n-1}"],
             ],
             [
                 loopback_checkpoint1.ports["o1"],
-                loopback_checkpoint2.ports["o2"],
             ],
             cross_section=cross_section,
             # start_straight_length=cross_section.radius_min,
+            end_straight_length=cross_section.radius_min,
+            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+        )
+        gf.routing.route_bundle(
+            CHIP,
+            [
+                grating_array.ports[f"o{n-1}"],
+            ],
+            [
+                loopback_checkpoint2.ports["o2"],
+            ],
+            cross_section=cross_section,
             end_straight_length=cross_section.radius_min,
             bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
         )

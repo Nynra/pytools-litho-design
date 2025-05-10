@@ -1,5 +1,4 @@
 import gdsfactory as gf
-from ..waveguides import straight
 
 
 def two_ring_muxer(radius_list: list[10, 20], cross_section="sio2"):
@@ -7,12 +6,13 @@ def two_ring_muxer(radius_list: list[10, 20], cross_section="sio2"):
         cross_section = gf.get_cross_section(cross_section)
 
     CHIP = gf.Component()
-    STRAIGHT = straight(length=50.0, cross_section=cross_section)
+    STRAIGHT = gf.get_component("straight", length=50.0, cross_section=cross_section)
 
     rings = [
-        gf.components.ring_double(
+        gf.components.ring_double_bend_coupler(
             radius=radius,
-            cross_section=cross_section,
+            cross_section_inner=cross_section,
+            cross_section_outer=cross_section,
         )
         for radius in radius_list
     ]
@@ -34,3 +34,80 @@ def two_ring_muxer(radius_list: list[10, 20], cross_section="sio2"):
     CHIP.add_port("o3", port=exit2.ports["o2"])
     CHIP.flatten()
     return CHIP
+
+
+def bend_two_ring_demuxer(
+    radius1=40,
+    radius2=70,
+    ring_spacing=100,
+    output_spacing=100,
+    output_distance=200,
+    gap=0.2,
+    cross_section="strip",
+    coupling_angle_coverage=70,
+) -> gf.Component:
+    assert radius1 < radius2, "radius1 must be less than radius2"
+
+    C = gf.Component()
+    r1 = C << gf.components.ring_double_bend_coupler(
+        radius=radius1,
+        gap=gap,
+        coupling_angle_coverage=coupling_angle_coverage,
+        # length_x=0.6,
+        # length_y=0.6,
+        cross_section_inner=cross_section,
+        cross_section_outer=cross_section,
+    )
+    r2 = C << gf.components.ring_double_bend_coupler(
+        radius=radius2,
+        gap=gap,
+        coupling_angle_coverage=coupling_angle_coverage,
+        # length_x=0.6,
+        # length_y=0.6,
+        cross_section_inner=cross_section,
+        cross_section_outer=cross_section,
+    )
+    # print(r2.ports)
+    spacer = C << gf.get_component(
+        "straight", cross_section=cross_section, length=ring_spacing
+    )
+    r1.connect("o1", spacer.ports["o1"])
+    r2.connect("o2", spacer.ports["o2"])
+    # C.flatten()
+    # C.add_port("o1", port=r2.ports["o3"])
+    # C.add_port("o2", port=r1.ports["o3"])
+    # C.add_port("o3", port=r2.ports["o1"])
+
+    O2 = gf.get_component("straight", cross_section=cross_section, length=10)
+    O1 = gf.get_component("straight", cross_section=cross_section, length=10)
+    GRID = gf.grid(
+        components=[O1, O2], shape=(2, 1), spacing=(output_distance, output_distance)
+    )
+    grid = C << GRID
+    # grid.move((-200, 100))
+    grid.center = (
+        r1.xmin - output_spacing,
+        r1.ymax + (radius2 - radius1) / 2,
+    )
+
+    gf.routing.route_bundle_sbend(
+        C,
+        [
+            r1.ports["o3"],
+            r2.ports["o1"],
+        ],
+        [
+            grid.ports["0_o2"],
+            grid.ports["1_o2"],
+        ],
+        cross_section=cross_section,
+    )
+
+    C.flatten()
+    return C
+
+
+if __name__ == "__main__":
+    c = bend_two_ring_demuxer()
+    c.draw_ports()
+    c.show()
