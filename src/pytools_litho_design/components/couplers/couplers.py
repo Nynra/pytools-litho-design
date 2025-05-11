@@ -4,7 +4,7 @@ import numpy as np
 
 
 # coupler = partial(gf.components.coupler)
-from gdsfactory.components import coupler
+from gdsfactory.components import coupler, grating_coupler_elliptical_arbitrary
 
 
 @gf.cell
@@ -88,6 +88,7 @@ def grating_coupler_traditional(
     )
 
     c.add_polygon(taper_points, layer=cross_section.layer)
+    # nc =
 
     c.add_port(
         name="o1",

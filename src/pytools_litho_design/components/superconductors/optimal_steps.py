@@ -11,12 +11,12 @@ from typing import Union
 @gf.cell
 def optimal_step(
     end_width: float = 22,
-    cross_section: gf.CrossSection | str = "strip",
+    cross_section: str = "strip",
     num_pts: int = 100,
     width_tol: float = 1e-3,
     anticrowding_factor: float = 1.2,
     symmetric: bool = False,
-    port_type: str = "elektrical",
+    port_type: str = "electrical",
 ) -> Component:
     """Returns an optimally-rounded step geometry.
 

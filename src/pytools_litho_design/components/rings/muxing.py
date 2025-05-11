@@ -1,7 +1,7 @@
 import gdsfactory as gf
 
 
-def two_ring_muxer(radius_list: list[10, 20], cross_section="sio2"):
+def two_ring_muxer(radius_list: list[10, 20], cross_section="asic_ridge"):
     if isinstance(cross_section, str):
         cross_section = gf.get_cross_section(cross_section)
 
@@ -41,9 +41,9 @@ def bend_two_ring_demuxer(
     radius2=70,
     ring_spacing=100,
     output_spacing=100,
-    output_distance=200,
+    output_distance=55,
     gap=0.2,
-    cross_section="strip",
+    cross_section="asic_ridge",
     coupling_angle_coverage=70,
 ) -> gf.Component:
     assert radius1 < radius2, "radius1 must be less than radius2"
@@ -80,14 +80,17 @@ def bend_two_ring_demuxer(
 
     O2 = gf.get_component("straight", cross_section=cross_section, length=10)
     O1 = gf.get_component("straight", cross_section=cross_section, length=10)
+    O0 = gf.get_component("straight", cross_section=cross_section, length=10)
     GRID = gf.grid(
-        components=[O1, O2], shape=(2, 1), spacing=(output_distance, output_distance)
+        components=[O0, O1, O2],
+        shape=(3, 1),
+        spacing=(output_distance, output_distance),
     )
     grid = C << GRID
     # grid.move((-200, 100))
     grid.center = (
         r1.xmin - output_spacing,
-        r1.ymax + (radius2 - radius1) / 2,
+        r1.ymax - 10,
     )
 
     gf.routing.route_bundle_sbend(
@@ -95,19 +98,25 @@ def bend_two_ring_demuxer(
         [
             r1.ports["o3"],
             r2.ports["o1"],
+            r1.ports["o4"],
         ],
         [
-            grid.ports["0_o2"],
             grid.ports["1_o2"],
+            grid.ports["2_o2"],
+            grid.ports["0_o2"],
         ],
         cross_section=cross_section,
     )
 
-    C.flatten()
+    # C.flatten()
+    C.add_port("o3", port=grid.ports["2_o1"])
+    C.add_port("o2", port=grid.ports["1_o1"])
+    C.add_port("o1", port=grid.ports["0_o1"])
+    C.add_port("o4", port=r2.ports["o3"])
     return C
 
 
 if __name__ == "__main__":
-    c = bend_two_ring_demuxer()
+    c = bend_two_ring_demuxer(cross_section="strip")
     c.draw_ports()
     c.show()

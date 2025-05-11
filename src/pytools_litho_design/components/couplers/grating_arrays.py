@@ -1,6 +1,5 @@
 import gdsfactory as gf
 from functools import partial
-from ..bends import bend_euler
 
 
 @gf.cell
@@ -49,13 +48,13 @@ def grating_coupler_array(
         loopback_checkpoint1 = CHIP << CHECKPOINT
         loopback_checkpoint1.center = (
             grating_array.xmin,
-            grating_array.ymin - 1.5 * cross_section.radius_min,
+            grating_array.ymin - 1.5 * cross_section.radius,
         )
 
         loopback_checkpoint2 = CHIP << CHECKPOINT
         loopback_checkpoint2.center = (
             grating_array.xmax,
-            grating_array.ymin - 1.5 * cross_section.radius_min,
+            grating_array.ymin - 1.5 * cross_section.radius,
         )
 
         gf.routing.route_bundle(
@@ -68,8 +67,10 @@ def grating_coupler_array(
             ],
             cross_section=cross_section,
             # start_straight_length=cross_section.radius_min,
-            end_straight_length=cross_section.radius_min,
-            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+            end_straight_length=cross_section.radius,
+            bend=gf.get_component(
+                "bend_euler", cross_section=cross_section, radius=radius
+            ),
         )
         gf.routing.route_bundle(
             CHIP,
@@ -80,15 +81,19 @@ def grating_coupler_array(
                 loopback_checkpoint2.ports["o2"],
             ],
             cross_section=cross_section,
-            end_straight_length=cross_section.radius_min,
-            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+            end_straight_length=cross_section.radius,
+            bend=gf.get_component(
+                "bend_euler", cross_section=cross_section, radius=radius
+            ),
         )
         gf.routing.route_single(
             CHIP,
             loopback_checkpoint1.ports["o2"],
             loopback_checkpoint2.ports["o1"],
             cross_section=cross_section,
-            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+            bend=gf.get_component(
+                "bend_euler", cross_section=cross_section, radius=radius
+            ),
         )
     if with_loss_structure and not with_loopback:
         raise ValueError("Loss structure cannot be enabled without loopback.")
@@ -97,13 +102,13 @@ def grating_coupler_array(
         # Position the checkpoints below the grating array
         loss_checkpoint1 = CHIP << CHECKPOINT
         loss_checkpoint1.center = (
-            grating_array.xmin - cross_section.radius_min,
-            grating_array.ymin - 2.5 * cross_section.radius_min,
+            grating_array.xmin - cross_section.radius,
+            grating_array.ymin - 2.5 * cross_section.radius,
         )
         loss_checkpoint2 = CHIP << CHECKPOINT
         loss_checkpoint2.center = (
-            grating_array.xmax + cross_section.radius_min,
-            grating_array.ymin - 2.5 * cross_section.radius_min,
+            grating_array.xmax + cross_section.radius,
+            grating_array.ymin - 2.5 * cross_section.radius,
         )
 
         gf.routing.route_bundle(
@@ -117,16 +122,20 @@ def grating_coupler_array(
                 loss_checkpoint2.ports["o2"],
             ],
             cross_section=cross_section,
-            start_straight_length=cross_section.radius_min,
-            end_straight_length=cross_section.radius_min,
-            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+            start_straight_length=cross_section.radius,
+            end_straight_length=cross_section.radius,
+            bend=gf.get_component(
+                "bend_euler", cross_section=cross_section, radius=radius
+            ),
         )
         gf.routing.route_single(
             CHIP,
             loss_checkpoint1.ports["o2"],
             loss_checkpoint2.ports["o1"],
             cross_section=cross_section,
-            bend=gf.components.bend_euler(cross_section=cross_section, radius=radius),
+            bend=gf.get_component(
+                "bend_euler", cross_section=cross_section, radius=radius
+            ),
         )
 
     if with_loopback and with_loss_structure:

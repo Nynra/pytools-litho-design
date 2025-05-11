@@ -1,41 +1,42 @@
 import gdsfactory as gf
-from ..components.superconductors.snspds import spot_snspd, straight_snspd
-from ..components.rings import two_ring_muxer
+from ..components.superconductors.snspds import straight_snspd
 
-from ..components.geometries.tapers import taper_to_ridge
+# from ..components.rings import two_ring_muxer
+
+# from ..components.geometries.tapers import taper_to_ridge
 from typing import Union, Tuple, List
 
 
-@gf.cell
-def spot_snspd_device(
-    channel_w: float = 0.3,
-    metal_cross_section: Union[gf.CrossSection, str] = "nbtin",
-    add_channel_protection: bool = True,
-    anticrowding_factor: float = 0.4,
-    waveguide_cross_section: str | gf.CrossSection | None = "asic",
-    waveguide_extension: float = 0,
-    clearance_size: Tuple[int, int] | None = None,
-    cladding_layer: str = "NEG_SIO2_BOT",
-    add_wire_transition: bool = False,
-    pad: str | gf.Component | None = None,
-    taper_pads: bool = True,
-    pad_distance: Tuple[float, float] = (100, 100),
-) -> gf.Component:
-    return straight_snspd_device(
-        channel_w=channel_w,
-        channel_l=0,
-        add_channel_protection=add_channel_protection,
-        metal_cross_section=metal_cross_section,
-        anticrowding_factor=anticrowding_factor,
-        waveguide_cross_section=waveguide_cross_section,
-        waveguide_extension=waveguide_extension,
-        clearance_size=clearance_size,
-        cladding_layer=cladding_layer,
-        add_wire_transition=add_wire_transition,
-        pad=pad,
-        taper_pads=taper_pads,
-        pad_distance=pad_distance,
-    )
+# @gf.cell
+# def spot_snspd_device(
+#     channel_w: float = 0.3,
+#     metal_cross_section: Union[gf.CrossSection, str] = "nbtin",
+#     add_channel_protection: bool = True,
+#     anticrowding_factor: float = 0.4,
+#     waveguide_cross_section: str | gf.CrossSection | None = "asic",
+#     waveguide_extension: float = 0,
+#     clearance_size: Tuple[int, int] | None = None,
+#     cladding_layer: str = "NEG_SIO2_BOT",
+#     add_wire_transition: bool = False,
+#     pad: str | gf.Component | None = None,
+#     taper_pads: bool = True,
+#     pad_distance: Tuple[float, float] = (100, 100),
+# ) -> gf.Component:
+#     return straight_snspd_device(
+#         channel_w=channel_w,
+#         channel_l=0,
+#         add_channel_protection=add_channel_protection,
+#         metal_cross_section=metal_cross_section,
+#         anticrowding_factor=anticrowding_factor,
+#         waveguide_cross_section=waveguide_cross_section,
+#         waveguide_extension=waveguide_extension,
+#         clearance_size=clearance_size,
+#         cladding_layer=cladding_layer,
+#         add_wire_transition=add_wire_transition,
+#         pad=pad,
+#         taper_pads=taper_pads,
+#         pad_distance=pad_distance,
+#     )
 
 
 @gf.cell
@@ -77,14 +78,14 @@ def straight_snspd_device(
             SNSPD,
             [pad1.ports["e4"]],
             [snspd_ref.ports["e1"]],
-            cross_section="coarse_nbtin",
+            cross_section=coarse_metal_cross_section,
             router="optical",
         )
         gf.routing.route_bundle(
             SNSPD,
             [pad2.ports["e4"]],
             [snspd_ref.ports["e2"]],
-            cross_section="coarse_nbtin",
+            cross_section=coarse_metal_cross_section,
             router="optical",
         )
 

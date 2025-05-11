@@ -1,1 +1,1 @@
-from .snspds import spot_snspd, straight_snspd_device
+from .snspds import straight_snspd_device
