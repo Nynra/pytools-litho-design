@@ -13,7 +13,7 @@ optical_taper = taper
 electrical_taper = partial(gf.components.taper_electrical, cross_section="nbtin")
 
 
-@gf.cell_with_module_name
+@gf.cell
 def sine_taper(
     length: float = 10.0,
     width1: float = 0.5,
@@ -35,7 +35,7 @@ def sine_taper(
     return gf.path.extrude_transition(path, transition)
 
 
-@gf.cell_with_module_name
+@gf.cell
 def neg_taper(
     length: float = 10.0,
     width1: float = 0.5,
@@ -182,7 +182,7 @@ neg_electrical_taper = partial(
 )
 
 
-@gf.cell_with_module_name
+@gf.cell
 def taper_to_ridge(
     width1: float = 0.5,
     width2: float = 0.5,
