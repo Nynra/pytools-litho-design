@@ -11,7 +11,12 @@ from .couplers import (
 from .rings import two_ring_muxer, bend_two_ring_demuxer
 from .markers import ebl_marker, ebl_marker_jb
 from .pads import pad, pad_array
-from .geometries import rectangle, spiral_racetrack, spiral_racetrack_fixed_length
+from .geometries import (
+    rectangle,
+    spiral_racetrack,
+    spiral_racetrack_fixed_length,
+    y_split,
+)
 
 # Straight sections
 straight = partial(gf.components.straight, cross_section="asic_ridge")
