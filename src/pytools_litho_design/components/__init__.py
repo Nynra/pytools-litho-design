@@ -1,6 +1,6 @@
 import gdsfactory as gf
 from functools import partial
-from .superconductors import straight_snspd
+from .superconductors import snspd
 from .couplers import (
     grating_arrays,
     grating_coupler_array,

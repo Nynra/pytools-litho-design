@@ -2,31 +2,56 @@ import gdsfactory as gf
 import numpy as np
 from gdsfactory.typings import Layer
 
-from .constrictions import variable_length_constriction
+from .constrictions import (
+    variable_length_constriction,
+    variable_length_hairpin_constriction,
+)
 from gdsfactory.components.waveguides import straight as straight_waveguide
 from typing import Union
 
 
 @gf.cell
-def straight_snspd(
+def snspd(
     channel_width: float = 0.5,
     channel_length: float = 10,
     add_channel_protection: bool = True,
     fine_wire_cross_section: str = "nbtin",
     coarse_wire_cross_section: str = "course_nbtin",
+    hairpin_pitch: float = 0.3,
+    choke_offset: float = 2,
+    choke_pitch: float = 1,
+    choke_cross_section: str = "nbtin",
     waveguide_cross_section: str = "strip",
     waveguide_extension: float = 0,
+    constriction_type: str = "straight",
 ) -> gf.Component:
     waveguide_xs = gf.get_cross_section(waveguide_cross_section)
 
     # Add the nanowire
     C = gf.Component()
-    nanowire = C << variable_length_constriction(
-        channel_width=channel_width,
-        channel_length=channel_length,
-        fine_cross_section=fine_wire_cross_section,
-        coarse_cross_section=coarse_wire_cross_section,
-    )
+    match constriction_type.lower():
+        case "straight":
+            nanowire = C << variable_length_constriction(
+                channel_width=channel_width,
+                channel_length=channel_length,
+                fine_cross_section=fine_wire_cross_section,
+                coarse_cross_section=coarse_wire_cross_section,
+            )
+        case "hairpin":
+            nanowire = C << variable_length_hairpin_constriction(
+                channel_width=channel_width,
+                channel_length=channel_length,
+                fine_cross_section=fine_wire_cross_section,
+                coarse_cross_section=coarse_wire_cross_section,
+                choke_cross_section=choke_cross_section,
+                hairpin_pitch=hairpin_pitch,
+                choke_offset=choke_offset,
+                choke_pitch=choke_pitch,
+            )
+        case _:
+            raise ValueError(
+                f"Constriction type {constriction_type} not recognized. Use 'straight' or 'hairpin'."
+            )
 
     # Add the waveguide to the middle of the nanowire
     length = 10 + 2 * waveguide_extension
