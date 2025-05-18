@@ -1,5 +1,5 @@
 import gdsfactory as gf
-from ..components.superconductors.snspds import snspd
+from ..components.superconductors.snspds import hairpin_snspd, straight_snspd
 
 # from ..components.rings import two_ring_muxer
 
@@ -47,8 +47,19 @@ def _add_pads(
     waveguide_cross_section: str | gf.CrossSection = "asic",
     protection_cross_section: str | gf.CrossSection = "asic",
     add_protection: bool = True,
-) -> List[gf.Component]:
+) -> gf.Component:
     """Adds pads to the component."""
+    if isinstance(coarse_metal_cross_section, str):
+        coarse_metal_cross_section = gf.get_cross_section(coarse_metal_cross_section)
+    if isinstance(waveguide_cross_section, str):
+        waveguide_cross_section = gf.get_cross_section(waveguide_cross_section)
+    if isinstance(protection_cross_section, str):
+        protection_cross_section = gf.get_cross_section(protection_cross_section)
+    if isinstance(pad, str):
+        pad = gf.get_component(pad)
+    if isinstance(pad, gf.Component):
+        pad = pad.copy()
+
     C = gf.Component()
     snspd_ref = C << component
 
@@ -132,7 +143,7 @@ def straight_snspd_device(
     SNSPD = gf.Component()
 
     # Add the snspd component to the parent component
-    SNSPD_GEOMETRY = snspd(
+    SNSPD_GEOMETRY = straight_snspd(
         channel_width=channel_width,
         channel_length=channel_length,
         fine_wire_cross_section=fine_metal_cross_section,
@@ -140,7 +151,6 @@ def straight_snspd_device(
         waveguide_cross_section=waveguide_cross_section,
         waveguide_extension=waveguide_extension,
         add_channel_protection=add_channel_protection,
-        constriction_type="straight",
     )
     # snspd_ref = SNSPD << SNSPD_GEOMETRY
 
@@ -216,12 +226,13 @@ def hairpin_snspd_device(
     cladding_layer: str = "NEG_SIO2_BOT",
     pad: str | gf.Component | None = None,
     pad_distance: Tuple[float, float] = (100, 100),
+    corner_type: str = "round",
 ) -> gf.Component:
     # Create the SNSPD component
     SNSPD = gf.Component()
 
     # Add the snspd component to the parent component
-    SNSPD_GEOMETRY = snspd(
+    SNSPD_GEOMETRY = hairpin_snspd(
         channel_width=channel_width,
         channel_length=channel_length,
         fine_wire_cross_section=fine_metal_cross_section,
@@ -230,10 +241,10 @@ def hairpin_snspd_device(
         waveguide_extension=waveguide_extension,
         add_channel_protection=add_channel_protection,
         choke_cross_section=choke_cross_section,
-        constriction_type="hairpin",
         choke_offset=choke_offset,
         choke_pitch=choke_pitch,
         hairpin_pitch=hairpin_pitch,
+        corner_type=corner_type,
     )
     # snspd_ref = SNSPD << SNSPD_GEOMETRY
 
@@ -251,23 +262,24 @@ def hairpin_snspd_device(
 
     snspd_ref = SNSPD << SNSPD_GEOMETRY
 
-    # Extend the waveguide to the edges of the pads
-    # Length should be half the pad size
-    straight_path = gf.components.straight(
-        length=waveguide_extension,
-        cross_section=waveguide_cross_section,
-    )
+    if waveguide_extension > 0:
+        # Extend the waveguide to the edges of the pads
+        # Length should be half the pad size
+        straight_path = gf.components.straight(
+            length=waveguide_extension,
+            cross_section=waveguide_cross_section,
+        )
 
-    top_extension = SNSPD << straight_path
-    top_extension.connect(
-        top_extension.ports["o1"],
-        snspd_ref.ports["o2"],
-    )
-    bottom_extension = SNSPD << straight_path
-    bottom_extension.connect(
-        bottom_extension.ports["o1"],
-        snspd_ref.ports["o1"],
-    )
+        top_extension = SNSPD << straight_path
+        top_extension.connect(
+            top_extension.ports["o1"],
+            snspd_ref.ports["o2"],
+        )
+        bottom_extension = SNSPD << straight_path
+        bottom_extension.connect(
+            bottom_extension.ports["o1"],
+            snspd_ref.ports["o1"],
+        )
 
     if clearance_size is not None:
         cladding = SNSPD << gf.components.rectangle(
@@ -283,8 +295,12 @@ def hairpin_snspd_device(
     else:
         pass
 
-    SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
-    SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
+    if waveguide_extension > 0:
+        SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
+        SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
+    else:
+        SNSPD.add_port(name="o1", port=snspd_ref.ports["o1"])
+        SNSPD.add_port(name="o2", port=snspd_ref.ports["o2"])
     SNSPD.center = (0, 0)
     SNSPD.flatten()
     return SNSPD
@@ -347,7 +363,7 @@ if __name__ == "__main__":
     anticrowding_factor = 0.4
     pad_size = (50, 50)
 
-    c = spot_snspd_device(
+    c = straight_snspd_device(
         channel_w=channel_w,
         source_w=source_w,
         guide_w=guide_w,

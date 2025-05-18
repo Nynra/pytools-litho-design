@@ -11,48 +11,26 @@ from typing import Union
 
 
 @gf.cell
-def snspd(
+def straight_snspd(
     channel_width: float = 0.5,
     channel_length: float = 10,
     add_channel_protection: bool = True,
     fine_wire_cross_section: str = "nbtin",
     coarse_wire_cross_section: str = "course_nbtin",
-    hairpin_pitch: float = 0.3,
-    choke_offset: float = 2,
-    choke_pitch: float = 1,
-    choke_cross_section: str = "nbtin",
     waveguide_cross_section: str = "strip",
     waveguide_extension: float = 0,
-    constriction_type: str = "straight",
 ) -> gf.Component:
     waveguide_xs = gf.get_cross_section(waveguide_cross_section)
 
     # Add the nanowire
     C = gf.Component()
-    match constriction_type.lower():
-        case "straight":
-            nanowire = C << variable_length_constriction(
-                channel_width=channel_width,
-                channel_length=channel_length,
-                fine_cross_section=fine_wire_cross_section,
-                coarse_cross_section=coarse_wire_cross_section,
-            )
-        case "hairpin":
-            nanowire = C << variable_length_hairpin_constriction(
-                channel_width=channel_width,
-                channel_length=channel_length,
-                fine_cross_section=fine_wire_cross_section,
-                coarse_cross_section=coarse_wire_cross_section,
-                choke_cross_section=choke_cross_section,
-                hairpin_pitch=hairpin_pitch,
-                choke_offset=choke_offset,
-                choke_pitch=choke_pitch,
-            )
-        case _:
-            raise ValueError(
-                f"Constriction type {constriction_type} not recognized. Use 'straight' or 'hairpin'."
-            )
-
+    LINE = variable_length_constriction(
+        channel_width=channel_width,
+        channel_length=channel_length,
+        fine_cross_section=fine_wire_cross_section,
+        coarse_cross_section=coarse_wire_cross_section,
+    )
+    nanowire = C << LINE
     # Add the waveguide to the middle of the nanowire
     length = 10 + 2 * waveguide_extension
     waveguide = C << straight_waveguide(
@@ -65,7 +43,7 @@ def snspd(
     )
     if add_channel_protection:
         PROTECTION_LAYER = gf.components.rectangle(
-            size=(nanowire.xsize * 0.3, channel_width * 3 + 1),
+            size=(nanowire.xsize * 0.3, channel_width * 3 + 3),
             layer=waveguide_xs.layer,
         ).copy()
         rinner = 2000
@@ -128,75 +106,116 @@ def snspd(
 #     )
 
 
-# def hairpin_snspd(
-#     length_hairpin=40,
-#     width_hairpin=0.05,
-#     pitch_hairpin=0.3,
-#     rotation_hairpin=90,  # 0, 90, or 180
-#     num_of_boxes_meander=23,  # Always use odd number
-#     width_meander=0.5,
-#     length_meander_box=10,
-#     bending_radius_meander=0.75,
-#     insulator_width_meander=1.5,
-#     wire_width_regular=5,
-#     Markers=True,
-# ):
-#     Meander = create_rectangle_meander(
-#         num_of_boxes=num_of_boxes_meander,
-#         width=width_meander,
-#         length=length_meander_box,
-#         bending_radius=bending_radius_meander,
-#         insulator_width=insulator_width_meander,
-#         wire_width=wire_width_regular,
-#     )
-#     Meander.move(destination=(50, -50))
-#     hairpin_custom = hairpin_with_tapers(
-#         hairpin_length=length_hairpin,
-#         hairpin_width=width_hairpin,
-#         hairpin_pitch=pitch_hairpin,
-#         wire_width=wire_width_regular,
-#         rotation=rotation_hairpin,
-#     )
-#     Pads = create_connection_pads(bonding_pad=True)
+@gf.cell
+def hairpin_snspd(
+    channel_width: float = 0.5,
+    channel_length: float = 10,
+    add_channel_protection: bool = True,
+    fine_wire_cross_section: str = "nbtin",
+    coarse_wire_cross_section: str = "course_nbtin",
+    hairpin_pitch: float = 0.3,
+    choke_offset: float = 2,
+    choke_pitch: float = 1,
+    choke_cross_section: str = "nbtin",
+    waveguide_cross_section: str = "strip",
+    waveguide_extension: float = 0,
+    corner_type: str = "round",
+) -> gf.Component:
+    waveguide_xs = gf.get_cross_section(waveguide_cross_section)
 
-#     R_Pad_to_HP = pr.route_smooth(
-#         port1=Pads.ports["Left"],
-#         port2=hairpin_custom.ports["input"],
-#         radius=5,
-#         width=None,
-#         path_type="manhattan",
-#         manual_path=None,
-#         smooth_options={"corner_fun": pp.euler, "use_eff": True},
-#         layer=2,
-#     )
+    # Add the nanowire
+    C = gf.Component()
+    LINE = variable_length_hairpin_constriction(
+        channel_width=channel_width,
+        channel_length=channel_length,
+        fine_cross_section=fine_wire_cross_section,
+        coarse_cross_section=coarse_wire_cross_section,
+        choke_cross_section=choke_cross_section,
+        hairpin_pitch=hairpin_pitch,
+        choke_offset=choke_offset,
+        choke_pitch=choke_pitch,
+        corner_type=corner_type,
+    )
 
-#     R_HP_to_Meander = pr.route_smooth(
-#         port1=Meander.ports["input"],
-#         port2=hairpin_custom.ports["output"],
-#         radius=5,
-#         width=None,
-#         path_type="manhattan",
-#         manual_path=None,
-#         smooth_options={"corner_fun": pp.euler, "use_eff": True},
-#         layer=2,
-#     )
+    # LINE.draw_ports()
+    # LINE.show()
+    nanowire = C << LINE
+    # Add the waveguide to the middle of the nanowire
+    waveguide = C << straight_waveguide(
+        length=nanowire.xsize / 2,
+        width=channel_width + hairpin_pitch + 1,
+        cross_section=waveguide_cross_section,
+    )
+    # waveguide.rotate(90)
+    waveguide.center = nanowire.center
+    waveguide.xmax = nanowire.xmax
 
-#     R_Meander_to_Pad = pr.route_smooth(
-#         port1=Meander.ports["output"],
-#         port2=Pads.ports["Right"],
-#         radius=5,
-#         width=None,
-#         path_type="manhattan",
-#         manual_path=None,
-#         smooth_options={"corner_fun": pp.euler, "use_eff": True},
-#         layer=2,
-#     )
-#     C = dl.Device()
-#     C.add_ref(
-#         [Pads, Meander, hairpin_custom, R_Pad_to_HP, R_HP_to_Meander, R_Meander_to_Pad]
-#     )
+    if add_channel_protection:
+        rinner = 2000
+        router = rinner
 
-#     return C
+        # Add the second protection layer
+        PROTECTION_LAYER2 = gf.components.rectangle(
+            size=(
+                waveguide_xs.radius / 15,
+                nanowire.xsize,
+            ),
+            layer=waveguide_xs.layer,
+        ).copy()
+        ROUNDED_PROTECTION_LAYER2 = gf.Component()
+        for p in PROTECTION_LAYER2.get_polygons(layers=[waveguide_xs.layer])[
+            gf.get_layer(waveguide_xs.layer)
+        ]:
+            p_round = p.round_corners(rinner, router, 200)
+            ROUNDED_PROTECTION_LAYER2.add_polygon(p_round, layer=waveguide_xs.layer)
+
+        protection_rect2 = C << ROUNDED_PROTECTION_LAYER2
+        protection_rect2.center = (nanowire.center[0], nanowire.center[1])
+
+        # Add the first protection layer
+
+        ROUNDED_PROTECTION_LAYER = gf.Component()
+        protection_rect = C << ROUNDED_PROTECTION_LAYER
+        PROTECTION_LAYER1 = gf.components.rectangle(
+            size=(
+                # channel_length,
+                nanowire.xsize / 2,
+                (9 + channel_width + hairpin_pitch),
+            ),
+            layer=waveguide_xs.layer,
+        ).copy()
+        for p in PROTECTION_LAYER1.get_polygons(layers=[waveguide_xs.layer])[
+            gf.get_layer(waveguide_xs.layer)
+        ]:
+            p_round = p.round_corners(rinner, router, 200)
+            ROUNDED_PROTECTION_LAYER.add_polygon(p_round, layer=waveguide_xs.layer)
+
+        # Position the center over the center of the wire
+        protection_rect.center = (
+            nanowire.center[0] + channel_length / 2,
+            nanowire.center[1],
+        )
+        protection_rect.xmin = protection_rect2.xmax - 2
+
+    # Add the ports
+    C.add_port(
+        name="o1",
+        port=waveguide.ports["o2"],
+        cross_section=waveguide_cross_section,
+    )
+    C.add_port(
+        name="o2",
+        port=waveguide.ports["o1"],
+        cross_section=waveguide_cross_section,
+    )
+
+    C.add_port(name="e2", port=nanowire.ports["e1"])
+    C.add_port(name="e1", port=nanowire.ports["e2"])
+    C.center = (0, 0)
+    C.flatten()
+    C.rotate(90)
+
+    return C
 
 
 if __name__ == "__main__":
