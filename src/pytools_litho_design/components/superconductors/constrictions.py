@@ -142,64 +142,64 @@ def variable_length_hairpin_constriction(
     deg90_bend1.connect("e2", hairpin.ports["e2"], allow_width_mismatch=True)
     deg90_bend2.connect("e2", hairpin.ports["e1"], allow_width_mismatch=True)
 
-    if add_choke:
-        # Add the choke inductor
-        choke_offset = LINE << gf.components.straight(
-            cross_section=fine_xs, length=choke_offset
-        )
-        choke_offset.connect("e2", deg90_bend1.ports["e1"])
-        deg90_bend3 = LINE << gf.components.bend_circular(
-            cross_section=fine_xs,
-            angle=90,
-            width=channel_width,
-            npoints=300,
-        )
-        deg90_bend3.mirror_y()
-        deg90_bend3.connect("e2", choke_offset.ports["e1"])
-        taper_bend3_to_choke = LINE << gf.components.tapers.taper_cross_section(
-            length=choke_pitch,
-            cross_section1=fine_xs,
-            cross_section2=choke_xs,
-        )
-        taper_bend3_to_choke.connect("e1", deg90_bend3.ports["e1"])
-        choke = LINE << gf.components.snspd(
-            wire_width=choke_xs.width,
-            wire_pitch=choke_pitch,
-            layer=choke_xs.layer,
-            terminals_same_side=True,
-        )
-        choke.connect("e1", taper_bend3_to_choke.ports["e2"])
+    # if add_choke:
+    #     # Add the choke inductor
+    #     choke_offset = LINE << gf.components.straight(
+    #         cross_section=fine_xs, length=choke_offset
+    #     )
+    #     choke_offset.connect("e2", deg90_bend1.ports["e1"])
+    #     deg90_bend3 = LINE << gf.components.bend_circular(
+    #         cross_section=fine_xs,
+    #         angle=90,
+    #         width=channel_width,
+    #         npoints=300,
+    #     )
+    #     deg90_bend3.mirror_y()
+    #     deg90_bend3.connect("e2", choke_offset.ports["e1"])
+    #     taper_bend3_to_choke = LINE << gf.components.tapers.taper_cross_section(
+    #         length=choke_pitch,
+    #         cross_section1=fine_xs,
+    #         cross_section2=choke_xs,
+    #     )
+    #     taper_bend3_to_choke.connect("e1", deg90_bend3.ports["e1"])
+    #     choke = LINE << gf.components.snspd(
+    #         wire_width=choke_xs.width,
+    #         wire_pitch=choke_pitch,
+    #         layer=choke_xs.layer,
+    #         terminals_same_side=True,
+    #     )
+    #     choke.connect("e1", taper_bend3_to_choke.ports["e2"])
 
-        deg90_bend4 = LINE << gf.components.bend_circular(
-            cross_section=fine_xs,
-            angle=90,
-            width=channel_width,
-            npoints=300,
-        )
-        choke_to_bend4_taper = LINE << gf.components.tapers.taper_cross_section(
-            length=choke_pitch,
-            cross_section1=choke_xs,
-            cross_section2=fine_xs,
-        )
-        choke_to_bend4_taper.connect("e1", choke.ports["e2"])
-        deg90_bend4.connect("e1", choke_to_bend4_taper.ports["e2"])
-        LINE.add_port(
-            name="e1",
-            port=deg90_bend2.ports["e1"],
-        )
-        LINE.add_port(
-            name="e2",
-            port=deg90_bend4.ports["e2"],
-        )
-    else:
-        LINE.add_port(
-            name="e1",
-            port=deg90_bend1.ports["e1"],
-        )
-        LINE.add_port(
-            name="e2",
-            port=deg90_bend2.ports["e1"],
-        )
+    #     deg90_bend4 = LINE << gf.components.bend_circular(
+    #         cross_section=fine_xs,
+    #         angle=90,
+    #         width=channel_width,
+    #         npoints=300,
+    #     )
+    #     choke_to_bend4_taper = LINE << gf.components.tapers.taper_cross_section(
+    #         length=choke_pitch,
+    #         cross_section1=choke_xs,
+    #         cross_section2=fine_xs,
+    #     )
+    #     choke_to_bend4_taper.connect("e1", choke.ports["e2"])
+    #     deg90_bend4.connect("e1", choke_to_bend4_taper.ports["e2"])
+    #     LINE.add_port(
+    #         name="e1",
+    #         port=deg90_bend2.ports["e1"],
+    #     )
+    #     LINE.add_port(
+    #         name="e2",
+    #         port=deg90_bend4.ports["e2"],
+    #     )
+    # else:
+    LINE.add_port(
+        name="e1",
+        port=deg90_bend1.ports["e1"],
+    )
+    LINE.add_port(
+        name="e2",
+        port=deg90_bend2.ports["e1"],
+    )
 
     source = NANOWIRE << WIRE
     gnd = NANOWIRE << WIRE
