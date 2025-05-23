@@ -44,6 +44,10 @@ def spiral_racetrack_fixed_length(
         cross_section_s: cross-section of the s bend waveguide (optional).
     """
     c = gf.Component()
+    if isinstance(cross_section, str):
+        cross_section = gf.get_cross_section(cross_section)
+    if isinstance(cross_section_s, str):
+        cross_section_s = gf.get_cross_section(cross_section_s)
 
     xs_s_bend = cross_section_s or cross_section
     xs = gf.get_cross_section(xs_s_bend)

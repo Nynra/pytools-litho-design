@@ -1,5 +1,9 @@
 import gdsfactory as gf
-from ..components.superconductors.snspds import hairpin_snspd, straight_snspd
+from ..components.superconductors.snspds import (
+    hairpin_snspd,
+    straight_snspd,
+    meander_snspd,
+)
 
 # from ..components.rings import two_ring_muxer
 
@@ -249,6 +253,94 @@ def hairpin_snspd_device(
         corner_type=corner_type,
     )
     # snspd_ref = SNSPD << SNSPD_GEOMETRY
+
+    # Add the electrical pads
+    if pad is not None:
+        SNSPD_GEOMETRY = _add_pads(
+            component=SNSPD_GEOMETRY,
+            pad=pad,
+            pad_distance=pad_distance,
+            coarse_metal_cross_section=coarse_metal_cross_section,
+            waveguide_cross_section=waveguide_cross_section,
+            protection_cross_section=protection_cross_section,
+            add_protection=add_signal_wire_protection,
+        )
+
+    snspd_ref = SNSPD << SNSPD_GEOMETRY
+
+    if waveguide_extension > 0:
+        # Extend the waveguide to the edges of the pads
+        # Length should be half the pad size
+        straight_path = gf.components.straight(
+            length=waveguide_extension,
+            cross_section=waveguide_cross_section,
+        )
+
+        top_extension = SNSPD << straight_path
+        top_extension.connect(
+            top_extension.ports["o1"],
+            snspd_ref.ports["o2"],
+        )
+        bottom_extension = SNSPD << straight_path
+        bottom_extension.connect(
+            bottom_extension.ports["o1"],
+            snspd_ref.ports["o1"],
+        )
+
+    if clearance_size is not None:
+        cladding = SNSPD << gf.components.rectangle(
+            size=clearance_size,
+            layer=cladding_layer,
+        )
+        cladding.center = snspd_ref.center
+
+    # Add the pads to the final component
+    if pad is not None:  # and not add_wire_transition:
+        SNSPD.add_port(name="e1", port=snspd_ref.ports["e1"])
+        SNSPD.add_port(name="e2", port=snspd_ref.ports["e2"])
+    else:
+        pass
+
+    if waveguide_extension > 0:
+        SNSPD.add_port(name="o1", port=top_extension.ports["o2"])
+        SNSPD.add_port(name="o2", port=bottom_extension.ports["o2"])
+    else:
+        SNSPD.add_port(name="o1", port=snspd_ref.ports["o1"])
+        SNSPD.add_port(name="o2", port=snspd_ref.ports["o2"])
+    SNSPD.center = (0, 0)
+    SNSPD.flatten()
+    return SNSPD
+
+
+@gf.cell
+def meander_snspd_device(
+    channel_width: float = 0.3,
+    channel_pitch: float = 1,
+    size: Tuple[float, float] = (5, 5),
+    add_channel_protection: bool = True,
+    add_signal_wire_protection: bool = True,
+    fine_metal_cross_section: gf.CrossSection | str = "nbtin",
+    coarse_metal_cross_section: gf.CrossSection | str = "nbtin",
+    waveguide_cross_section: gf.CrossSection | str = "asic",
+    protection_cross_section: gf.CrossSection | str = "asic",
+    waveguide_extension: float = 0,
+    clearance_size: Tuple[int, int] | None = None,
+    cladding_layer: str = "NEG_SIO2_BOT",
+    pad: str | gf.Component | None = None,
+    pad_distance: Tuple[float, float] = (100, 100),
+) -> gf.Component:
+    # Create the SNSPD component
+    SNSPD = gf.Component()
+
+    # Add the snspd component to the parent component
+    SNSPD_GEOMETRY = meander_snspd(
+        channel_width=channel_width,
+        channel_pitch=channel_pitch,
+        size=size,
+        fine_wire_cross_section=fine_metal_cross_section,
+        coarse_wire_cross_section=coarse_metal_cross_section,
+        waveguide_cross_section=waveguide_cross_section,
+    )
 
     # Add the electrical pads
     if pad is not None:

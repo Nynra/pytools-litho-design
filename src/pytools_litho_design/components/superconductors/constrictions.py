@@ -72,9 +72,10 @@ def _round_hairpin(
     line2 = HAIRPIN << LINE
     line1.connect("e2", bend180.ports["e2"])
     line2.connect("e1", bend180.ports["e1"])
-    HAIRPIN.show()
     HAIRPIN.add_port(name="e1", port=line1.ports["e1"])
     HAIRPIN.add_port(name="e2", port=line2.ports["e2"])
+    HAIRPIN.draw_ports()
+    HAIRPIN.show()
     return HAIRPIN
 
 
@@ -109,7 +110,7 @@ def variable_length_hairpin_constriction(
     )
     LINE = gf.Component()
     match corner_type:
-        case "optimal":
+        case "default":
             hairpin = LINE << gf.components.optimal_hairpin(
                 width=channel_width,
                 pitch=hairpin_pitch,
@@ -210,6 +211,77 @@ def variable_length_hairpin_constriction(
     # NANOWIRE.flatten()
     NANOWIRE.add_port(name="e1", port=source.ports[0])
     NANOWIRE.add_port(name="e2", port=gnd.ports[0])
+    return NANOWIRE
+
+
+@gf.cell
+def variable_length_meander_constriction(
+    channel_width: float = 0.1,
+    channel_pitch=0.5,
+    size=(1, 1),
+    fine_cross_section: str = "metal1",
+    coarse_cross_section: str = "metal1",
+) -> gf.Component:
+    """Creates a single wire, made of two optimal steps"""
+    fine_xs = gf.get_cross_section(fine_cross_section)
+    coarse_xs = gf.get_cross_section(coarse_cross_section)
+    NANOWIRE = gf.Component()
+    WIRE = taper_to_ridge(
+        length=3,
+        width1=channel_width,
+        width2=channel_width,
+        slab_length=coarse_xs.width,
+        w_slab2=coarse_xs.width,
+        w_slab1=channel_width if channel_width > 2 else 2,
+        port_type="electrical",
+        main_cross_section=fine_cross_section,
+        slab_cross_section=coarse_cross_section,
+    )
+    LINE = gf.Component()
+    meander = LINE << gf.components.superconductors.snspd(
+        wire_width=channel_width,
+        wire_pitch=channel_pitch,
+        layer=fine_xs.layer,
+        size=size,
+        terminals_same_side=True,
+    )
+
+    entrance_bend = LINE << gf.components.bend_circular(
+        cross_section=fine_cross_section,
+        angle=90,
+        width=channel_width,
+        radius=channel_pitch / 2,
+        npoints=300,
+        allow_min_radius_violation=True,
+    )
+    entrance_bend.mirror_y()
+    entrance_bend.connect("e1", meander.ports["e1"], allow_width_mismatch=True)
+    exit_bend = LINE << gf.components.bend_circular(
+        cross_section=fine_cross_section,
+        angle=90,
+        width=channel_width,
+        radius=channel_pitch / 2,
+        npoints=300,
+        allow_min_radius_violation=True,
+    )
+    exit_bend.connect("e1", meander.ports["e2"], allow_width_mismatch=True)
+    LINE.add_port(
+        name="e1",
+        port=entrance_bend.ports["e2"],
+    )
+    LINE.add_port(
+        name="e2",
+        port=exit_bend.ports["e2"],
+    )
+
+    # Connect the tapers
+    NANOWIRE << LINE
+    taper1 = NANOWIRE << WIRE
+    taper2 = NANOWIRE << WIRE
+    taper1.connect("e2", LINE.ports["e1"], allow_width_mismatch=True)
+    taper2.connect("e2", LINE.ports["e2"], allow_width_mismatch=True)
+    NANOWIRE.add_port(name="e1", port=taper1.ports[0])
+    NANOWIRE.add_port(name="e2", port=taper2.ports[0])
     return NANOWIRE
 
 
