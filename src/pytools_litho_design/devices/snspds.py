@@ -3,6 +3,7 @@ from ..components.superconductors.snspds import (
     hairpin_snspd,
     straight_snspd,
     meander_snspd,
+    choked_hairpin_snspd,
 )
 
 # from ..components.rings import two_ring_muxer
@@ -215,17 +216,13 @@ def straight_snspd_device(
 def hairpin_snspd_device(
     channel_width: float = 0.3,
     channel_length: float = 1,
+    channel_pitch: float = 0.3,
     add_channel_protection: bool = True,
     add_signal_wire_protection: bool = True,
     fine_metal_cross_section: gf.CrossSection | str = "nbtin",
     coarse_metal_cross_section: gf.CrossSection | str = "nbtin",
     waveguide_cross_section: gf.CrossSection | str = "asic",
     protection_cross_section: gf.CrossSection | str = "asic",
-    hairpin_pitch: float = 0.3,
-    add_choke: bool = True,
-    choke_cross_section: gf.CrossSection | str = "nbtin",
-    choke_offset: float = 1,
-    choke_pitch: float = 1,
     waveguide_extension: float = 0,
     clearance_size: Tuple[int, int] | None = None,
     cladding_layer: str = "NEG_SIO2_BOT",
@@ -240,16 +237,12 @@ def hairpin_snspd_device(
     SNSPD_GEOMETRY = hairpin_snspd(
         channel_width=channel_width,
         channel_length=channel_length,
+        channel_pitch=channel_pitch,
         fine_wire_cross_section=fine_metal_cross_section,
         coarse_wire_cross_section=coarse_metal_cross_section,
         waveguide_cross_section=waveguide_cross_section,
         waveguide_extension=waveguide_extension,
         add_channel_protection=add_channel_protection,
-        add_choke=add_choke,
-        choke_cross_section=choke_cross_section,
-        choke_offset=choke_offset,
-        choke_pitch=choke_pitch,
-        hairpin_pitch=hairpin_pitch,
         corner_type=corner_type,
     )
     # snspd_ref = SNSPD << SNSPD_GEOMETRY
@@ -395,6 +388,82 @@ def meander_snspd_device(
     else:
         SNSPD.add_port(name="o1", port=snspd_ref.ports["o1"])
         SNSPD.add_port(name="o2", port=snspd_ref.ports["o2"])
+    SNSPD.center = (0, 0)
+    SNSPD.flatten()
+    return SNSPD
+
+
+@gf.cell
+def choked_hairpin_snspd_device(
+    channel_width: float = 0.3,
+    channel_length: float = 1,
+    channel_pitch: float = 0.3,
+    add_channel_protection: bool = True,
+    add_signal_wire_protection: bool = True,
+    fine_metal_cross_section: gf.CrossSection | str = "nbtin",
+    choke_cross_section: gf.CrossSection | str = "nbtin",
+    choke_offset: float = 4,
+    choke_size: Tuple[float, float] = (10, 10),
+    choke_pitch: float = 0.3,
+    coarse_metal_cross_section: gf.CrossSection | str = "nbtin",
+    waveguide_cross_section: gf.CrossSection | str = "asic",
+    protection_cross_section: gf.CrossSection | str = "asic",
+    clearance_size: Tuple[int, int] | None = None,
+    cladding_layer: str = "NEG_SIO2_BOT",
+    pad: str | gf.Component | None = None,
+    pad_distance: Tuple[float, float] = (100, 100),
+    corner_type: str = "round",
+) -> gf.Component:
+    # Create the SNSPD component
+    SNSPD = gf.Component()
+
+    # Add the snspd component to the parent component
+    SNSPD_GEOMETRY = choked_hairpin_snspd(
+        channel_width=channel_width,
+        channel_length=channel_length,
+        channel_pitch=channel_pitch,
+        fine_wire_cross_section=fine_metal_cross_section,
+        coarse_wire_cross_section=coarse_metal_cross_section,
+        choke_cross_section=choke_cross_section,
+        choke_offset=choke_offset,
+        choke_size=choke_size,
+        choke_pitch=choke_pitch,
+        waveguide_cross_section=waveguide_cross_section,
+        add_channel_protection=add_channel_protection,
+        corner_type=corner_type,
+    )
+    # snspd_ref = SNSPD << SNSPD_GEOMETRY
+
+    # Add the electrical pads
+    if pad is not None:
+        SNSPD_GEOMETRY = _add_pads(
+            component=SNSPD_GEOMETRY,
+            pad=pad,
+            pad_distance=pad_distance,
+            coarse_metal_cross_section=coarse_metal_cross_section,
+            waveguide_cross_section=waveguide_cross_section,
+            protection_cross_section=protection_cross_section,
+            add_protection=add_signal_wire_protection,
+        )
+
+    snspd_ref = SNSPD << SNSPD_GEOMETRY
+
+    if clearance_size is not None:
+        cladding = SNSPD << gf.components.rectangle(
+            size=clearance_size,
+            layer=cladding_layer,
+        )
+        cladding.center = snspd_ref.center
+
+    # Add the pads to the final component
+    if pad is not None:  # and not add_wire_transition:
+        SNSPD.add_port(name="e1", port=snspd_ref.ports["e1"])
+        SNSPD.add_port(name="e2", port=snspd_ref.ports["e2"])
+    else:
+        pass
+
+    SNSPD.add_port(name="o1", port=snspd_ref.ports["o1"])
+    SNSPD.add_port(name="o2", port=snspd_ref.ports["o2"])
     SNSPD.center = (0, 0)
     SNSPD.flatten()
     return SNSPD
