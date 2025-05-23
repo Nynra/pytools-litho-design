@@ -274,7 +274,7 @@ def choked_hairpin_snspd(
         in_taper = LINE << gf.components.taper_cross_section(
             cross_section1=fine_wire_xs, cross_section2=choke_xs, length=1
         )
-        out_bend.
+        out_bend.connect("e2", in_taper.ports["e1"])
         connector = LINE << gf.components.straight(
             length=choke_offset,
             width=choke_xs.width,
@@ -286,13 +286,29 @@ def choked_hairpin_snspd(
         choke.connect(
             choke.ports["e1"], connector.ports["e2"], allow_width_mismatch=True
         )
-        # LINE.show()
-        hairpin.connect(
-            hairpin.ports["e2"],
-            connector.ports["e1"],
-            allow_width_mismatch=True,
+
+        LINE.add_port(
+            name="e1",
+            port=in_bend.ports["e2"],
+            cross_section=fine_wire_xs,
+        )
+        LINE.add_port(
+            name="e2",
+            port=choke.ports["e2"],
+            cross_section=choke_xs,
         )
         LINE.show()
+    else:
+        LINE.add_port(
+            name="e1",
+            port=in_bend.ports["e2"],
+            cross_section=fine_wire_xs,
+        )
+        LINE.add_port(
+            name="e2",
+            port=out_bend.ports["e2"],
+            cross_section=fine_wire_xs,
+        )
 
     # LINE.draw_ports()
     # LINE.show()
