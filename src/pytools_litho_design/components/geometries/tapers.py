@@ -22,11 +22,11 @@ def sine_taper(
     npoints=100,
     **kwargs,
 ) -> gf.Component:
-    # if not isinstance(cross_section, str):
-    #     # cs1 = gf.get_cross_section(cross_section., width=width1)
-    #     # cs2 = gf.get_cross_section(cross_section.name, width=width2)
-    #     cs1 = gf.get_cross_section()
-    # else:
+    # IMPORTANT
+    # This method only works if we use the str version of the cross_section.
+    # no idea why, but it does not work with the CrossSection object, it ignores the second width
+    if not isinstance(cross_section, str):
+        cross_section = cross_section.name
     cs1 = gf.get_cross_section(cross_section, width=width1)
     cs2 = gf.get_cross_section(cross_section, width=width2)
 
@@ -188,8 +188,6 @@ def taper_to_ridge(
     width2: float = 0.5,
     length: float = 10.0,
     slab_length: float = 5,
-    # layer_wg: LayerSpec = "ASIC",
-    # layer_slab: LayerSpec = "CLADDING",
     w_slab1: float = 0.15,
     w_slab2: float = 6.0,
     main_cross_section: CrossSectionSpec = "asic",
@@ -232,22 +230,6 @@ def taper_to_ridge(
     main_xs = gf.get_cross_section(main_cross_section)
     slab_xs = gf.get_cross_section(slab_cross_section)
 
-    # Create tapers of the right type
-    # if type.lower() == "default":
-    #     taper_func = optical_taper if port_type == "optical" else electrical_taper
-    #     taper_slab = taper_func(
-    #         length=slab_length,
-    #         width1=width1,
-    #         width2=width2,
-    #         layer=slab_cross_section.layer,
-    #     )
-    #     taper_wg = taper_func(
-    #         length=length,
-    #         width1=w_slab1,
-    #         width2=w_slab2,
-    #         layer=main_cross_section.layer,
-    #     )
-    # else:
     taper_slab = sine_taper(
         length=slab_length,
         width1=w_slab1,

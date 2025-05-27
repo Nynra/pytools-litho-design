@@ -2,7 +2,7 @@ import gdsfactory as gf
 from gdsfactory.typings import LayerSpec, ComponentSpec
 
 
-@gf.cell
+# @gf.cell
 def add_protection_mask(
     component: ComponentSpec,
     protection_layer: LayerSpec,
@@ -78,7 +78,7 @@ def add_protection_mask(
         for p in temp.get_polygons(by="tuple", layers=[protection_layer])[
             protection_layer
         ]:
-            p_round = p.round_corners(corner_radius, corner_radius * 1e3, 200)
+            p_round = p.round_corners(corner_radius, corner_radius * 1e3, 600)
             rounded_temp.add_polygon(p_round, layer=protection_layer)
         temp = rounded_temp
 
