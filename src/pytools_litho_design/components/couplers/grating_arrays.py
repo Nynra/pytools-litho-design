@@ -1,17 +1,37 @@
 import gdsfactory as gf
 from functools import partial
+from gdsfactory.typings import ComponentSpec, CrossSectionSpec
 
 
 @gf.cell
 def grating_coupler_array(
-    grating_coupler="grating_coupler_elliptical",
-    pitch=127,
-    n=5,
-    cross_section="strip",
-    with_loopback=True,
+    grating_coupler: ComponentSpec = "grating_coupler_elliptical",
+    pitch: float = 127,
+    n: int = 5,
+    cross_section: CrossSectionSpec = "strip",
+    with_loopback: bool = True,
     with_loss_structure: bool = False,
-):
-    """Create a grating coupler array for glued fibers."""
+) -> gf.Component:
+    """Create a grating coupler array for glued fibers.
+
+    Parameters:
+        grating_coupler: ComponentSpec
+            Grating coupler component or name.
+        pitch: float
+            Pitch between grating couplers.
+        n: int
+            Number of grating couplers in the array.
+        cross_section: CrossSectionSpec
+            Cross-section for the waveguides.
+        with_loopback: bool
+            Whether to include a loopback structure.
+        with_loss_structure: bool
+            Whether to include a loss structure. This loop in combination with the
+            loopback structure can be used to measure the loss of the grating coupler.
+
+    Returns:
+        gf.Component of the grating coupler array.
+    """
     if isinstance(grating_coupler, str):
         grating_coupler = gf.get_component(grating_coupler)
     if isinstance(cross_section, str):
@@ -160,11 +180,26 @@ def grating_coupler_array(
 
 @gf.cell
 def grating_coupler_cluster(
-    coupler: gf.Component | str = "grating_coupler_traditional",
+    coupler: ComponentSpec = "grating_coupler_traditional",
     row_offset: int = 150,
     column_offset: int = 600,
-    cross_section: gf.CrossSection | str = "strip",
-):
+    cross_section: CrossSectionSpec = "strip",
+) -> gf.Component:
+    """Create a cluster of grating couplers.
+
+    Parameters:
+        coupler: ComponentSpec
+            Grating coupler component or name.
+        row_offset: int
+            Vertical offset between rows of grating couplers.
+        column_offset: int
+            Horizontal offset between columns of grating couplers.
+        cross_section: CrossSectionSpec
+            Cross-section for the waveguides.
+
+    Returns:
+        gf.Component of the grating coupler cluster.
+    """
     if isinstance(cross_section, str):
         cross_section = gf.get_cross_section(cross_section)
     if isinstance(coupler, str):
