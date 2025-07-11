@@ -17,6 +17,7 @@ license-files = ["LICENSE"]
 femwell = ["femwell", "skfem"]
 tidy3d = ["tidy3d"]
 sax = ["sax", "jax"]
+full_sim = ["femwell", "skfem", "tidy3d", "sax", "jax"]
 
 [project.urls]
 Homepage = "https://github.com/Nynra/pytools-lihto-design"
