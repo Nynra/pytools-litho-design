@@ -1,6 +1,6 @@
 [project]
 name = "pytools_litho_design"
-version = "0.0.4"
+version = "0.0.5"
 authors = [{ name = "Nynra", email = "nynradev@pm.me" }]
 description = "Some usefull functions for mask design."
 readme = { file = "README.md", content-type = "text/markdown" }

@@ -101,11 +101,6 @@ def angled_taper(
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
-    # Create and show the hyperbolic taper
-    # c = hyper_taper()
-    # c.plot()
-    # plt.show()
-
     # Create and show the angled taper
     c = angled_taper()
     c.plot()
