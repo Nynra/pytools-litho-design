@@ -142,3 +142,140 @@ import numpy as np
 #     c = wg_to_snspd()
 #     c.plot()
 #     plt.show()
+
+
+@gf.cell
+def rectangle_meander(
+    num_of_boxes=23,
+    width=0.5,
+    length=10,
+    bending_radius=0.5,
+    insulator_width=0.75,
+    wire_width=5,
+    layer=(2, 1),
+):
+    MEANDER = gf.Component()
+
+    # Initialize a list to store the devices that will become the "ports" of the meander
+    boxes = []
+
+    def renaming_func(ports: str) -> str:
+        for cnt, port in enumerate(ports):
+            match port.name:
+                case "e1":
+                    replacement = "W"
+                case "e2":
+                    replacement = "N"
+                case "e3":
+                    replacement = "E"
+                case "e4":
+                    replacement = "S"
+                case _:
+                    raise ValueError(f"Unknown port name: {port.name}")
+
+            ports[cnt].name = replacement
+        return ports
+
+    BOX = gf.components.compass(
+        size=[length, width],
+        layer=layer,
+    )
+    for i in range(num_of_boxes):  # We need 25 boxes to create 24 turns
+        # Create and place the box
+        # box = meander << pg.compass(size=[length, width],layer=write_on_layer).move([0, i * (width+insulator_width)])
+        box = MEANDER << BOX
+        box.move([0, i * (width + insulator_width)])
+
+        # Add the boxes to the list
+        boxes.append(box)
+
+    # Now create the connecting paths
+    BEND = gf.Component()
+    reference = BEND << gf.components.bend_euler(
+        radius=bending_radius,
+        width=width,
+        layer=layer,
+        allow_min_radius_violation=True,
+        angle=90,
+        npoints=100,
+    )
+    for port in reference.ports:
+        if port.port_type == "optical":
+            port.port_type = "electrical"
+            port.name = "e" + port.name[1:]
+
+        BEND.add_port(
+            name=port.name,
+            port=port,
+        )
+    # Change the ports to elektrical
+
+    BEND.pprint_ports()
+    BEND.draw_ports()
+    BEND.show()
+    for i in range(0, len(boxes) - 1, 2):  # Skip every second box
+        gf.routing.route_single(
+            component=MEANDER,
+            port1=boxes[i].ports["e3"],
+            port2=boxes[i + 1].ports["e3"],
+            route_width=width,
+            layer=layer,
+            bend=BEND,
+            # bend=gf.components.bend_euler(
+            #     radius=bending_radius, allow_min_radius_violation=True, width=width
+            # ),
+        )
+        gf.routing.route_single(
+            component=MEANDER,
+            port1=boxes[i + 1].ports["e1"],
+            port2=boxes[i + 2].ports["e1"],
+            route_width=width,
+            layer=layer,
+            # bend=bend,
+        )
+
+    MEANDER.add_port(
+        name="IN1",
+        midpoint=[
+            length / 2,
+            ((num_of_boxes - 1) * width + (num_of_boxes - 1) * insulator_width),
+        ],
+        width=width,
+        orientation=0,
+    )
+    MEANDER.add_port(
+        name="IN2", midpoint=[length / -2, 0], width=width, orientation=180
+    )
+    MEANDER.rotate(-90, center=(0, 0))
+
+    # Create the taper object
+    TAPER = gf.components.taper(
+        width1=wire_width, width2=width, length=2 * wire_width, layer=layer
+    )
+    TAPER.add_port(name="input", center=[0, 0], width=wire_width, orientation=180)
+    TAPER.add_port(
+        name="output", center=[2 * wire_width, 0], width=width, orientation=0
+    )
+
+    # Create the input taper
+    taper_device_in = MEANDER << TAPER
+    taper_device_out = MEANDER << TAPER
+
+    # Connect the input tapers to the meander
+    taper_device_in.connect("output", MEANDER.ports["IN2"])
+    taper_device_out.connect("output", MEANDER.ports["IN1"])
+
+    # Add ports to the main device meander
+    MEANDER.add_port(name="input", port=taper_device_in.ports["input"])
+    MEANDER.add_port(name="output", port=taper_device_out.ports["input"])
+
+    return MEANDER
+
+
+if __name__ == "__main__":
+
+    import matplotlib.pyplot as plt
+
+    c = rectangle_meander(layer=(2, 5))
+    c.plot()
+    plt.show()
