@@ -31,7 +31,16 @@ The project can be used in 2 ways:
     # For windows
     #venv\Scripts\activate
 
+    # Install the bare version (no simulation packages)
     pip install --editable .
+    # With femwell simulation package
+    pip install --editable .[femwell]
+    # With tidy3d simulation package
+    pip install --editable .[tidy3d]
+    # With sax simulation package
+    pip install --editable .[sax]
+    # With all simulation packages
+    pip install --editable .[full_sim]
     ```
 
 ### As a package

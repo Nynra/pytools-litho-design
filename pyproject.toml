@@ -5,7 +5,12 @@ authors = [{ name = "Nynra", email = "nynradev@pm.me" }]
 description = "Some usefull functions for mask design."
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
-dependencies = ["matplotlib", "numpy", "gdsfactory", "gplugins"]
+dependencies = [
+    "matplotlib==3.10.8",
+    "numpy==2.2.0",
+    "gdsfactory==9.39.0",
+    "gplugins==2.0.1",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -14,10 +19,16 @@ license = "MIT"
 license-files = ["LICENSE"]
 
 [project.optional-dependencies]
-femwell = ["femwell", "skfem"]
-tidy3d = ["tidy3d"]
-sax = ["sax", "jax"]
-full_sim = ["femwell", "skfem", "tidy3d", "sax", "jax"]
+femwell = ["femwell==0.1.12", "skfem==0.0.0"]
+tidy3d = ["tidy3d==2.10.0"]
+sax = ["sax==0.16.13", "jax==0.9.1"]
+full_sim = [
+    "femwell==0.1.12",
+    "skfem==0.0.0",
+    "tidy3d==2.10.0",
+    "sax==0.16.13",
+    "jax==0.9.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/Nynra/pytools-lihto-design"
